@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "AiSpace Meeting Recorder",
+  "version": "1.0",
+  "description": "Auto-record Google Meet and Zoom meetings.",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "https://*.zoom.us/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://meet.google.com/*",
+        "https://*.zoom.us/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "icon_128.png"
+    }
+  },
+  "icons": {
+    "128": "icon_128.png"
+  }
+}

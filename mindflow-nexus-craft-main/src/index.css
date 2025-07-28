@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+:root {
+    --background: 220 20% 97%;
+    --foreground: 220 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 15%;
+
+    --primary: 220 100% 45%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 220 20% 95%;
+    --secondary-foreground: 220 30% 15%;
+
+    --muted: 220 20% 95%;
+    --muted-foreground: 220 15% 45%;
+
+    --accent: 220 20% 92%;
+    --accent-foreground: 220 30% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 15% 85%;
+    --input: 220 15% 85%;
+    --ring: 220 100% 45%;
+
+    --radius: 0.75rem;
+
+    /* Mindmap specific colors */
+    --mindmap-bg: 220 25% 96%;
+    --mindmap-node-shadow: 220 20% 85%;
+    
+    /* Vibrant gradients */
+    --gradient-green-blue: linear-gradient(135deg, hsl(152 70% 65%), hsl(210 100% 60%));
+    --gradient-pink-purple: linear-gradient(135deg, hsl(330 70% 65%), hsl(270 85% 65%));
+    --gradient-yellow-red: linear-gradient(135deg, hsl(48 95% 65%), hsl(0 85% 65%));
+    --gradient-teal-cyan: linear-gradient(135deg, hsl(172 75% 65%), hsl(188 85% 65%));
+    --gradient-indigo-blue: linear-gradient(135deg, hsl(238 75% 65%), hsl(210 100% 45%));
+    
+    /* Node specific styling */
+    --node-shadow: 0 4px 20px -2px hsl(var(--mindmap-node-shadow) / 0.25);
+    --node-hover-shadow: 0 8px 32px -4px hsl(var(--mindmap-node-shadow) / 0.35);
+    
+    /* Animation variables */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+.dark {
+    --background: 220 30% 8%;
+    --foreground: 220 20% 95%;
+
+    --card: 220 25% 12%;
+    --card-foreground: 220 20% 95%;
+
+    --popover: 220 25% 12%;
+    --popover-foreground: 220 20% 95%;
+
+    --primary: 220 100% 60%;
+    --primary-foreground: 220 30% 8%;
+
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 220 20% 95%;
+
+    --muted: 220 20% 18%;
+    --muted-foreground: 220 15% 65%;
+
+    --accent: 220 20% 22%;
+    --accent-foreground: 220 20% 95%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 220 20% 95%;
+
+    --border: 220 20% 22%;
+    --input: 220 20% 22%;
+    --ring: 220 100% 60%;
+
+    /* Dark mode mindmap colors */
+    --mindmap-bg: 220 30% 10%;
+    --mindmap-node-shadow: 220 30% 5%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+/* Mindmap specific styles */
+.mindmap-container {
+  background: hsl(var(--mindmap-bg));
+  min-height: 100vh;
+}
+
+.mindmap-node {
+  transition: var(--transition-smooth);
+  box-shadow: var(--node-shadow);
+  border-radius: var(--radius);
+}
+
+.mindmap-node:hover {
+  box-shadow: var(--node-hover-shadow);
+  transform: translateY(-2px);
+}
+
+.gradient-green-blue {
+  background: var(--gradient-green-blue);
+}
+
+.gradient-pink-purple {
+  background: var(--gradient-pink-purple);
+}
+
+.gradient-yellow-red {
+  background: var(--gradient-yellow-red);
+}
+
+.gradient-teal-cyan {
+  background: var(--gradient-teal-cyan);
+}
+
+.gradient-indigo-blue {
+  background: var(--gradient-indigo-blue);
+}
+
+.node-pulse {
+  animation: pulse-gentle 2s ease-in-out infinite;
+}
+
+@keyframes pulse-gentle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+.mindmap-edge {
+  stroke-width: 3px;
+  stroke: hsl(var(--primary) / 0.6);
+  transition: var(--transition-smooth);
+}
+
+.mindmap-edge:hover {
+  stroke: hsl(var(--primary));
+  stroke-width: 4px;
+}

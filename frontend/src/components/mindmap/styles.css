@@ -1,0 +1,116 @@
+/* Mindmap specific styles */
+.mindmap-container {
+  background: hsl(220, 25%, 96%);
+  min-height: 100vh;
+}
+
+/* Node styling */
+.mindmap-node {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.15);
+  border-radius: 0.75rem;
+}
+
+.mindmap-node:hover {
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Node type specific styling */
+.node-project {
+  background: linear-gradient(135deg, hsl(238, 75%, 65%), hsl(210, 100%, 45%));
+  color: white;
+}
+
+.node-person {
+  background: linear-gradient(135deg, hsl(330, 70%, 65%), hsl(270, 85%, 65%));
+  color: white;
+}
+
+.node-note {
+  background: linear-gradient(135deg, hsl(152, 70%, 65%), hsl(210, 100%, 60%));
+  color: white;
+}
+
+/* Gradient backgrounds */
+.gradient-green-blue {
+  background: linear-gradient(135deg, hsl(152, 70%, 65%), hsl(210, 100%, 60%));
+}
+
+.gradient-pink-purple {
+  background: linear-gradient(135deg, hsl(330, 70%, 65%), hsl(270, 85%, 65%));
+}
+
+.gradient-yellow-red {
+  background: linear-gradient(135deg, hsl(48, 95%, 65%), hsl(0, 85%, 65%));
+}
+
+.gradient-teal-cyan {
+  background: linear-gradient(135deg, hsl(172, 75%, 65%), hsl(188, 85%, 65%));
+}
+
+.gradient-indigo-blue {
+  background: linear-gradient(135deg, hsl(238, 75%, 65%), hsl(210, 100%, 45%));
+}
+
+/* Animation */
+.node-pulse {
+  animation: pulse-gentle 2s ease-in-out infinite;
+}
+
+@keyframes pulse-gentle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Edge styling */
+.mindmap-edge {
+  stroke-width: 3px;
+  stroke: rgba(59, 130, 246, 0.6);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mindmap-edge:hover {
+  stroke: rgb(59, 130, 246);
+  stroke-width: 4px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mindmap-container {
+    background: hsl(220, 30%, 10%);
+  }
+  
+  .mindmap-node {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .mindmap-edge {
+    stroke: rgba(96, 165, 250, 0.6);
+  }
+  
+  .mindmap-edge:hover {
+    stroke: rgb(96, 165, 250);
+  }
+}

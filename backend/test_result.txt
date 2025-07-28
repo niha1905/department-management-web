@@ -1,0 +1,31 @@
+Starting NotesController initialization...
+NotesController initialized successfully
+Gemini initialized: True
+
+Testing _process_ai_extraction method...
+Test text: I need to schedule a meeting with John tomorrow at 2pm to discuss the project timeline.
+Error during AI extraction: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+Traceback (most recent call last):
+  File "R:\Projects\GRAND-MAGNUM-AI-DASHBOARD-main\backend\test_notes.py", line 40, in <module>
+    result = notes._process_ai_extraction(test_text)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "R:\Projects\GRAND-MAGNUM-AI-DASHBOARD-main\backend\controllers\Notes.py", line 668, in _process_ai_extraction
+    return jsonify({
+           ^^^^^^^^^
+  File "C:\Users\DELL-RL\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\json\__init__.py", line 170, in jsonify
+    return current_app.json.response(*args, **kwargs)  # type: ignore[return-value]
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\DELL-RL\AppData\Local\Programs\Python\Python312\Lib\site-packages\werkzeug\local.py", line 318, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DELL-RL\AppData\Local\Programs\Python\Python312\Lib\site-packages\werkzeug\local.py", line 519, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
