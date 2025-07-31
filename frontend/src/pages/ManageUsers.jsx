@@ -12,17 +12,6 @@ const DEPARTMENTS = ["Finance", "CAD", "Audit"];
 
 // Main component for admin user management (create, list, delete users)
 export default function ManageUsers() {
-  // Restrict this page to admin only
-  if (!isAdmin()) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-xl shadow-md text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
-          <p className="text-gray-700">You do not have permission to view this page.</p>
-        </div>
-      </div>
-    );
-  }
   // State for form, users, loading, error, success
   const [tab, setTab] = useState("create");
   const [formData, setFormData] = useState({
@@ -38,6 +27,18 @@ export default function ManageUsers() {
   const [isLoading, setIsLoading] = useState(false);
   // Use sessionStorage for admin email
   const adminEmail = sessionStorage.getItem('email') || "";
+
+  // Restrict this page to admin only
+  if (!isAdmin()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-xl shadow-md text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
+          <p className="text-gray-700">You do not have permission to view this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (tab === "manage") {
@@ -95,7 +96,7 @@ export default function ManageUsers() {
   // Only users with role 'admin' are admins
   const admins = users.filter(u => u.role === "admin");
   // Only users with role 'users' are members
-  const members = users.filter(u => u.role === "users");
+  const members = users.filter(u => u.role === "member");
 
   // Renders UI for creating users and managing (listing/deleting) users
   return (

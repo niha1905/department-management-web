@@ -223,7 +223,7 @@ export const TranscriptionProvider = ({ children }) => {
           user_name
         };
 
-        const response = await axios.post('http://192.168.1.100:5000/api/notes', routineTask);
+        const response = await axios.post('http://localhost:5000/api/notes', routineTask);
         toast.success('Routine task added to calendar!');
         
         // Dispatch event to refresh routine tasks in dashboard
@@ -258,7 +258,7 @@ export const TranscriptionProvider = ({ children }) => {
       }
       
       // Otherwise, extract notes from the transcription
-      const aiResponse = await axios.post('http://192.168.1.100:5000/api/notes/ai', {
+      const aiResponse = await axios.post('http://localhost:5000/api/notes/ai', {
         text: transcribedText,
         user_email,
         user_name
@@ -281,7 +281,7 @@ export const TranscriptionProvider = ({ children }) => {
       // Helper: AI-based project detection
       async function aiDetectProject(text) {
         try {
-          const response = await axios.post('http://192.168.1.100:5000/api/projects/detect', {
+          const response = await axios.post('http://localhost:5000/api/projects/detect', {
             text,
             existing_projects: allProjects.map(p => p.name)
           });
@@ -325,7 +325,7 @@ export const TranscriptionProvider = ({ children }) => {
             }
           }
           try {
-            await axios.post('http://192.168.1.100:5000/api/notes', {
+            await axios.post('http://localhost:5000/api/notes', {
               title: note.title,
               description: note.description,
               tags: note.tags || [],

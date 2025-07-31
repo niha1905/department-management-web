@@ -29,7 +29,7 @@ except ImportError:
     print("⚠️ python-dotenv not installed, using system environment variables")
 
 app = Flask(__name__)
-CORS(app, origins=["http://192.168.1.100:5173"])
+CORS(app, origins=["http://localhost:5173"])
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 # MongoDB setup

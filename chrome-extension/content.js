@@ -41,7 +41,7 @@
           formData.append('audio', blob, `meeting-recording-${Date.now()}.webm`);
           formData.append('event_id', window.location.pathname.slice(1,));
           
-          fetch('http://192.168.1.100:5000/upload_audio', {
+          fetch('http://localhost:5000/upload_audio', {
             method: 'POST',
             body: formData
           })

@@ -39,7 +39,7 @@ export const deleteMindmapComment = async (noteId, commentId) => {
 };
 import axios from 'axios';
 
-export const API_URL = 'http://192.168.1.100:5000';
+export const API_URL = 'http://localhost:5000';
 
 // ====================== NOTES API ======================
 // Fetch notes with flexible arguments (object or legacy)
@@ -61,7 +61,7 @@ export const fetchNotes = async (tagOrFilters = {}, view = 'active', assignedTo 
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join('&');
 
-  const url = `http://192.168.1.100:5000/api/notes${query ? '?' + query : ''}`;
+  const url = `http://localhost:5000/api/notes${query ? '?' + query : ''}`;
   const res = await fetch(url);
   if (!res.ok) {
     const text = await res.text();
@@ -396,7 +396,7 @@ export const canAssignNote = (note) => {
 
 // ====================== AUTH APIs ======================
 export async function loginUser(email, password) {
-  const res = await fetch("http://192.168.1.100:5000/login", {
+  const res = await fetch("http://localhost:5000/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -417,7 +417,7 @@ export async function loginUser(email, password) {
 
 // UPDATED: signupUser now accepts name and phone as arguments
 export async function signupUser(email, password, role, department, name = "", phone = "") {
-  const res = await fetch("http://192.168.1.100:5000/signup", {
+  const res = await fetch("http://localhost:5000/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password, role, department, name, phone }),
@@ -431,13 +431,13 @@ export async function signupUser(email, password, role, department, name = "", p
 
 // ================== USER MANAGEMENT APIs ==================
 export async function fetchUsers() {
-  const res = await fetch("http://192.168.1.100:5000/users");
+  const res = await fetch("http://localhost:5000/users");
   if (!res.ok) throw new Error("Failed to fetch users");
   return res.json();
 }
 
 export async function deleteUser(userId) {
-  const res = await fetch(`http://192.168.1.100:5000/users/${userId}`, {
+  const res = await fetch(`http://localhost:5000/users/${userId}`, {
     method: "DELETE"
   });
   if (!res.ok) throw new Error("Failed to delete user");
@@ -445,7 +445,7 @@ export async function deleteUser(userId) {
 }
 
 export async function createUser(userData) {
-  const res = await fetch("http://192.168.1.100:5000/create-user", {
+  const res = await fetch("http://localhost:5000/create-user", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(userData),
@@ -459,7 +459,7 @@ export async function createUser(userData) {
 
 // ================== PASSWORD MANAGEMENT ==================
 export async function updatePassword({ email, old_password, new_password }) {
-  const res = await fetch("http://192.168.1.100:5000/update-password", {
+  const res = await fetch("http://localhost:5000/update-password", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, old_password, new_password }),

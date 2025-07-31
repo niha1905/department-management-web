@@ -46,8 +46,8 @@ export default function Navbar({ toggleSidebar }) {
     navigate("/login");
   };
 
-  const email = sessionStorage.getItem('email') || '';
-  const initials = email ? email.slice(0, 2).toUpperCase() : '';
+  const name = sessionStorage.getItem('name') || '';
+  const initials = name ? name.slice(0, 2).toUpperCase() : '';
 
   const handleMakeNotes = async () => {
     try {
@@ -154,7 +154,7 @@ export default function Navbar({ toggleSidebar }) {
             {profileMenuOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-50 overflow-hidden">
                 <div className="p-3 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{email}</p>
+                  <p className="text-sm font-medium text-gray-900">{name}</p>
                 </div>
                 <button
                   className="block w-full text-left px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors duration-200"

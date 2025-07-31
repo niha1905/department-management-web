@@ -3,7 +3,7 @@ import { Plus, Users, Calendar, Target, MoreVertical, Edit, Trash2, Eye, CheckCi
 import { toast } from 'react-hot-toast';
 import { cn, buttonVariants } from '../utils/styles';
 
-const API_URL = 'http://192.168.1.100:5000';
+const API_URL = 'http://localhost:5000';
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);

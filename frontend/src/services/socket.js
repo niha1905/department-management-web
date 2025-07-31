@@ -10,7 +10,7 @@ class SocketService {
   // Connects to backend Socket.IO server, registers event handlers
   connect() {
     if (!this.socket || !this.socket.connected) {
-      this.socket = io('http://192.168.1.100:5000', {
+      this.socket = io('http://localhost:5000', {
         transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionDelay: 1000,

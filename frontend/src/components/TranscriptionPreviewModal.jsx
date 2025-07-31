@@ -4,7 +4,7 @@ import { X, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { cn, buttonVariants, inputStyles, textareaStyles, selectStyles } from '../utils/styles';
 import TagInput from './TagInput';
 
-const API_URL = 'http://192.168.1.100:5000';
+const API_URL = 'http://localhost:5000';
 
 const TranscriptionPreviewModal = ({
   isOpen,

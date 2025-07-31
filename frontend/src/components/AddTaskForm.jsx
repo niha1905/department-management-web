@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import moment from "moment";
 import { fetchUsers } from '../services/api';
 
-const API_URL = 'http://192.168.1.100:5000';
+const API_URL = 'http://localhost:5000';
 
 const compactStyles = {
   modalOverlay: {

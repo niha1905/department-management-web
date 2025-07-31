@@ -226,7 +226,7 @@ export default function RealEstateMindmapPage() {
   );
 
   return (
-    <div className="mindmap-container w-screen h-screen">
+    <div className="mindmap-container w-screen h-screen" style={{ background: "#fff" }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -235,11 +235,11 @@ export default function RealEstateMindmapPage() {
         onConnect={onConnect}
         nodeTypes={customNodeTypes}
         fitView
-        className="bg-background w-full h-full"
+        className="w-full h-full"
         defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
       >
         <Background 
-          color="hsl(var(--border))" 
+          color="e5e7eb" // gray-200
           gap={20} 
           size={1}
         />
