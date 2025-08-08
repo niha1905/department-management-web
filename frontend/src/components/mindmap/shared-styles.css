@@ -1,0 +1,95 @@
+/* Shared mindmap styles */
+.mindmap-container {
+  background: #ffffff;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+/* Node expand/collapse styles */
+.node-collapsed {
+  opacity: 0.8;
+}
+
+.node-collapsed:hover {
+  opacity: 1;
+}
+
+/* Expand/collapse button */
+.expand-collapse-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: -24px;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.expand-collapse-btn:hover {
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Transition for expanding/collapsing */
+.node-content {
+  transition: all 0.3s ease-in-out;
+  max-height: 500px;
+  opacity: 1;
+  overflow: hidden;
+}
+
+.node-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Visual indicator for nodes with children */
+.has-children::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+/* Node connections */
+.react-flow__edge-path {
+  stroke: #cbd5e1;
+  stroke-width: 2;
+  transition: all 0.2s ease;
+}
+
+.react-flow__edge-path:hover {
+  stroke: #94a3b8;
+  stroke-width: 3;
+}
+
+/* Node animations */
+@keyframes nodeAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.node-appear {
+  animation: nodeAppear 0.3s ease-out forwards;
+}

@@ -19,6 +19,9 @@ export interface NodeData {
   noteId?: string;
   description?: string;
   completed?: boolean;
+  assignedTo?: string[];
+  expanded?: boolean;
+  hasChildren?: boolean;
 }
 
 export interface MindmapNode {

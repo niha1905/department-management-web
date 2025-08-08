@@ -114,14 +114,14 @@ const Comment = ({
   return (
     <div className="space-y-3">
       <div 
-        className={`bg-white rounded-lg shadow-md ${comment.completed ? 'border-green-200 bg-green-50/40' : `border-${comment.color || 'gray'}-100`}`}
+        className={`bg-[var(--gm-white)] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border ${comment.completed ? 'border-green-200 bg-green-50/40' : 'border-[var(--color-border)]'}`}
         style={{ marginLeft: indentMargin }}
       >
         {/* Comment header */}
-        <div className={`px-4 py-2 flex justify-between items-center border-b ${comment.completed ? 'border-green-200' : 'border-gray-100'}`}>
+        <div className={`px-4 py-2 flex justify-between items-center border-b ${comment.completed ? 'border-green-200' : 'border-[var(--color-border)]'}`}>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-xs font-medium text-blue-600">
+            <div className="w-7 h-7 rounded-full bg-[var(--gm-aqua)]/15 flex items-center justify-center">
+              <span className="text-xs font-medium text-[var(--gm-aqua)]">
                 {comment.author ? comment.author.substring(0, 2).toUpperCase() : 'AN'}
               </span>
             </div>
@@ -154,7 +154,7 @@ const Comment = ({
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg z-30 border border-gray-100 overflow-hidden"
+                  className="absolute right-0 mt-1 w-40 bg-[var(--gm-white)] rounded-2xl shadow-[0_8px_28px_rgba(0,0,0,0.08)] z-30 border border-[var(--color-border)] overflow-hidden"
                 >
                   <ul className="py-1 text-sm">
                     {isAuthor && (
@@ -163,7 +163,7 @@ const Comment = ({
                           onClick={() => { setIsMenuOpen(false); setIsEditing(true); setTimeout(() => textareaRef.current?.focus(), 100); }}
                           className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-50"
                         >
-                          <Edit size={14} className="mr-2 text-blue-500" />
+                        <Edit size={14} className="mr-2 text-[var(--gm-aqua)]" />
                           Edit
                         </button>
                       </li>
@@ -193,7 +193,7 @@ const Comment = ({
                             onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
                             className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-50"
                           >
-                            <Palette size={14} className="mr-2 text-indigo-500" />
+                            <Palette size={14} className="mr-2 text-[var(--gm-aqua)]" />
                             Change Color
                           </button>
                           
@@ -279,7 +279,7 @@ const Comment = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="ml-8 bg-white rounded-lg shadow-md p-3"
+            className="ml-8 bg-[var(--gm-white)] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-3 border border-[var(--color-border)]"
             style={{ marginLeft: indentMargin + 16 }}
           >
             <div className="flex items-start gap-2">

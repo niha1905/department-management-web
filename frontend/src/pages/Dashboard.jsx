@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { Calendar as CalendarIcon, Clock, AlertCircle, CheckCircle, Target, Users, TrendingUp, X, Tag, FileText, User, Building, Edit, Trash2, Plus, Minus, Brain, Lightbulb, Zap } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, AlertCircle, CheckCircle, Check as CheckIcon, Target, Users, TrendingUp, X, Tag, FileText, User, Building, Edit, Trash2, Plus, Minus, Brain, Lightbulb, Zap } from 'lucide-react';
+import TaskDetailModal from '../components/TaskDetailModal';
 import { fetchNotes, updateNote, deleteNote, getProjects, fetchUsers, fetchPeople } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { DndProvider } from 'react-dnd';
@@ -28,15 +29,12 @@ const Modal = ({ isOpen, onClose, children }) => {
 // Modal for calendar day events
 function CalendarEventModal({ open, date, tasks, onClose }) {
   if (!open) return null;
-  
-  // Format the date nicely
   const formattedDate = new Date(date).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
-  
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 mx-auto animate-fadeIn">
@@ -99,6 +97,18 @@ function CalendarEventModal({ open, date, tasks, onClose }) {
     </div>
   );
 }
+// Handler for calendar day click
+// This should be placed inside your Dashboard component
+// Example usage in render:
+// <Calendar onDayClick={handleCalendarDayClick} ... />
+
+// In your Dashboard component's render/return section, add:
+// <CalendarEventModal
+//   open={calendarModalOpen}
+//   date={calendarModalDate}
+//   tasks={calendarModalTasks}
+//   onClose={() => setCalendarModalOpen(false)}
+// />
 
 // Modal for user notes in project (checkboxes)
 const handleUserNoteCheckbox = async (note) => {
@@ -151,10 +161,16 @@ const UserNotesModal = ({ modalNode, onClose }) => {
   );
 };
 
-export default function Dashboard() {
+const Dashboard = () => {
   // All hooks and state declarations must come first
   const [notes, setNotes] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [modalNode, setModalNode] = useState(null);
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
+  const [calendarModalDate, setCalendarModalDate] = useState(null);
+  const [calendarModalTasks, setCalendarModalTasks] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const canvasRef = useRef(null);
   const [mindMapData, setMindMapData] = useState([]);
@@ -176,8 +192,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedNode, setFocusedNode] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [modalNode, setModalNode] = useState(null);
   const autoAssignRanRef = useRef(false);
   const [tab, setTab] = useState('dashboard');
   const [realEstateMindMap, setRealEstateMindMap] = useState(null);
@@ -191,16 +205,58 @@ export default function Dashboard() {
   const [panOrigin, setPanOrigin] = useState({ x: 0, y: 0 });
   const [mindMapRoot, setMindMapRoot] = useState(null);
   const [dailyTasks, setDailyTasks] = useState([]);
-  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
-  const [calendarModalDate, setCalendarModalDate] = useState("");
-  const [calendarModalTasks, setCalendarModalTasks] = useState([]);
   const [routineTasks, setRoutineTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
 
   useEffect(() => {
-    loadNotes();
-    loadRoutineTasks();
-    fetchNotes({}, 'active').then(setAllNotes);
+    const fetchData = async () => {
+      const userRole = sessionStorage.getItem('role');
+      const userEmail = sessionStorage.getItem('email');
+      const userName = sessionStorage.getItem('name');
+      let assignedProjects = [];
+      if (userRole === 'member') {
+        // Fetch all projects and filter to those assigned to this user
+        const allProjects = await getProjects();
+        const myProjects = (allProjects.projects || []).filter(p => Array.isArray(p.assigned_users) && p.assigned_users.includes(userName));
+        assignedProjects = myProjects.map(p => p._id);
+        setProjects(myProjects);
+      } else {
+        // Admin: show all projects
+        const allProjects = await getProjects();
+        setProjects(allProjects.projects || []);
+      }
+      // Fetch notes with custom filter
+      let noteFilter = {};
+      if (userRole === 'member') {
+        noteFilter = {
+          $or: [
+            { created_by: userEmail },
+            { project_id: assignedProjects.length > 0 ? { $in: assignedProjects } : null }
+          ]
+        };
+      } else {
+        noteFilter = { created_by: userEmail };
+      }
+      // Backend must support $or/$in, or filter client-side if not
+      let fetchedNotes = await fetchNotes({}, 'active');
+      if (userRole === 'member') {
+        fetchedNotes = fetchedNotes.filter(note =>
+          note.created_by === userEmail ||
+          (note.project_id && assignedProjects.includes(note.project_id))
+        );
+      } else {
+        // Admin: see everything except other users' daily/routine notes
+        fetchedNotes = fetchedNotes.filter(note => {
+          const isDailyOrRoutine = note.type === 'daily task' || note.type === 'routine task';
+          const isOthers = note.created_by !== userEmail;
+          return !(isDailyOrRoutine && isOthers);
+        });
+      }
+      setNotes(fetchedNotes);
+      setAllNotes(fetchedNotes);
+      loadRoutineTasks();
+    };
+    fetchData();
   }, []);
 
   // Listen for note creation events to refresh routine tasks
@@ -258,7 +314,8 @@ export default function Dashboard() {
 
   const loadRoutineTasks = async () => {
     try {
-      const response = await fetch('/api/notes?filter_type=routine task');
+      if (!userEmail) return;
+      const response = await fetch(`/api/notes?filter_type=routine task&filter_created_by=${encodeURIComponent(userEmail)}`);
       if (!response.ok) throw new Error('Failed to fetch routine tasks');
       const data = await response.json();
       const tasks = data.notes || [];
@@ -583,8 +640,8 @@ export default function Dashboard() {
     ctx.fillText('Delete', detailX + 205, buttonY + 12);
   };
 
-  const handleCanvasClick = (e) => {
-    const rect = e.target.getBoundingClientRect();
+  const handleMindmapClick = (e, target) => {
+    const rect = target.getBoundingClientRect();
     // Convert mouse coordinates to mindmap coordinates, accounting for pan and zoom
     const x = (e.clientX - rect.left - pan.x) / zoom;
     const y = (e.clientY - rect.top - pan.y) / zoom;
@@ -643,15 +700,32 @@ export default function Dashboard() {
   };
 
   const handleDeleteTask = async (taskData) => {
+    const taskId = taskData._id || taskData;
     if (window.confirm('Are you sure you want to delete this task?')) {
       try {
-        await deleteNote(taskData._id);
+        await deleteNote(taskId);
+        setShowDetailModal(false);
+        setModalNode(null);
+        toast.success('Task deleted successfully');
+        loadNotes(); // Refresh notes
         toast.success('Task deleted!');
         loadNotes();
       } catch (error) {
         console.error('Error deleting task:', error);
         toast.error('Failed to delete task');
       }
+    }
+  };
+
+  const handleEditTaskInline = async (id, changes) => {
+    try {
+      await updateNote(id, changes);
+      setModalNode(prev => prev ? { ...prev, ...changes } : prev);
+      toast.success('Task updated');
+      loadNotes();
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast.error('Failed to update task');
     }
   };
 
@@ -826,7 +900,7 @@ export default function Dashboard() {
       color: 'bg-blue-400',
       icon: 'brain',
       children: notes
-        .filter(note => note.type === 'daily task')
+        .filter(note => note.type === 'daily task' && !note.completed)
         .map(note => ({
           id: note._id,
           title: note.title,
@@ -885,6 +959,34 @@ export default function Dashboard() {
     }
     return null;
   };
+  // handleDeleteTask has been merged with the other handler
+
+  const handleStatusChange = async (taskId) => {
+    try {
+      const task = modalNode;
+      const newStatus = !task.completed;
+      await updateNote(taskId, { completed: newStatus });
+      setModalNode({ ...task, completed: newStatus });
+      if (newStatus) {
+        setMindMapRoot(prev => {
+          if (!prev) return prev;
+          function removeNode(node, id) {
+            if (!node.children || node.children.length === 0) return node;
+            const filteredChildren = node.children
+              .filter(child => child.id !== id)
+              .map(child => removeNode(child, id));
+            return { ...node, children: filteredChildren };
+          }
+          return removeNode(prev, taskId);
+        });
+        setShowDetailModal(false);
+      }
+      toast.success(`Task marked as ${newStatus ? 'completed' : 'not completed'}`);
+      loadNotes(); // Refresh notes
+    } catch (error) {
+      toast.error('Failed to update task status');
+    }
+  };
 
   useEffect(() => {
     setMindMapRoot(getDailyTasksMindMap());
@@ -901,9 +1003,19 @@ export default function Dashboard() {
   }
 
   const handleNodeClick = (node) => {
-    setModalNode(node);
+    if (!node || node.id === 'root' || node.id === 'center' || node.type === 'center') return;
+
+    const modalData = {
+      id: node.id || node._id, // Ensure we have an id for API calls
+      title: node.title || node.text || '', // Use title or text property
+      description: node.description || (node.data && node.data.description) || '',
+      completed: node.completed || (node.data && node.data.completed) || false,
+      deadline: node.deadline || (node.data && node.data.deadline)
+    };
+    
+    setModalNode(modalData);
     setShowDetailModal(true);
-  };
+  };;
 
   const handleModalCompleteNote = async (note) => {
     await updateNote(note._id, { ...note, completed: true });
@@ -1000,7 +1112,7 @@ export default function Dashboard() {
     ctx.stroke();
     ctx.restore();
 
-    // Gentle hover glow
+    // Gentle hover glow and description tooltip
     if (isHovered) {
       ctx.save();
       ctx.beginPath();
@@ -1012,6 +1124,29 @@ export default function Dashboard() {
       ctx.stroke();
       ctx.shadowBlur = 0;
       ctx.restore();
+
+      // Show description tooltip if available
+      if (node.description) {
+        ctx.save();
+        ctx.font = '14px Segoe UI, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = 'rgba(30,41,59,0.97)';
+        const tooltipWidth = Math.min(ctx.measureText(node.description).width + 32, 260);
+        const tooltipX = node.x - tooltipWidth / 2;
+        const tooltipY = node.y - size - 38;
+        ctx.beginPath();
+        ctx.moveTo(tooltipX, tooltipY);
+        ctx.lineTo(tooltipX + tooltipWidth, tooltipY);
+        ctx.lineTo(tooltipX + tooltipWidth, tooltipY + 38);
+        ctx.lineTo(tooltipX, tooltipY + 38);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px Segoe UI, Arial, sans-serif';
+        ctx.fillText(node.description.length > 40 ? node.description.slice(0, 40) + '...' : node.description, node.x, tooltipY + 12);
+        ctx.restore();
+      }
     }
 
     // Draw Lucide SVG icon centered above the text
@@ -1185,9 +1320,26 @@ export default function Dashboard() {
     });
   }
 
+  const handleCanvasClick = (e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const node = getNodeAtPosition(x, y, mindMapRoot, zoom, pan, expandedNodes);
+    if (node) {
+      handleNodeClick(node);
+    }
+  };
+
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !mindMapRoot || !mindMapRoot.children || mindMapRoot.children.length === 0) return;
+
+    // Add click event listener
+    canvas.addEventListener('click', handleCanvasClick);
+
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
@@ -1197,6 +1349,11 @@ export default function Dashboard() {
     drawMindMapTreeLines(ctx, mindMapRoot);
     drawMindMapTreeNodes(ctx, mindMapRoot, animationFrame, hoveredNode);
     ctx.restore();
+
+    // Cleanup
+    return () => {
+      canvas.removeEventListener('click', handleCanvasClick);
+    };
   }, [mindMapRoot, animationFrame, hoveredNode, zoom, pan]);
 
   const handleRealEstateUpload = (e) => {
@@ -1444,7 +1601,8 @@ export default function Dashboard() {
 
   // Fetch daily tasks on mount and when notes change, with error handling
   useEffect(() => {
-    fetch('/api/notes?filter_type=daily task')
+    if (!userEmail) return;
+    fetch(`/api/notes?filter_type=daily task&filter_created_by=${encodeURIComponent(userEmail)}`)
       .then(res => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
@@ -1473,21 +1631,64 @@ export default function Dashboard() {
   // Handler for calendar day click
   const handleCalendarDayClick = (date) => {
     if (!date) return;
-    const dateStr = date.toISOString().slice(0, 10);
+    // Set clicked date to local midnight
+    const clickedDate = new Date(date);
+    clickedDate.setHours(0, 0, 0, 0);
     const dayTasks = notes.filter(note => {
       if (note.deadline) {
         const deadline = new Date(note.deadline);
-        return deadline.toISOString().slice(0, 10) === dateStr;
+        deadline.setHours(0, 0, 0, 0);
+        return deadline.getTime() === clickedDate.getTime();
       }
       return false;
     });
-    setCalendarModalDate(dateStr);
+    setCalendarModalDate(clickedDate);
     setCalendarModalTasks(dayTasks);
     setCalendarModalOpen(true);
   };
 
+  const handleCalendarEventClick = (clickedDate) => {
+    const dayTasks = allNotes.filter(note => {
+      if (note.deadline) {
+        const deadline = new Date(note.deadline);
+        deadline.setHours(0, 0, 0, 0);
+        return deadline.getTime() === clickedDate.getTime();
+      }
+      return false;
+    });
+    setCalendarModalDate(clickedDate);
+    setCalendarModalTasks(dayTasks);
+    setCalendarModalOpen(true);
+  };
+
+  // Keyboard shortcut: Ctrl+K to focus search
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const input = document.getElementById('dashboard-search');
+        if (input) input.focus();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // Component render
   return (
     <>
+      {showDetailModal && modalNode && (
+        <TaskDetailModal
+          task={modalNode}
+          onClose={() => {
+            setShowDetailModal(false);
+            setModalNode(null);
+          }}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDeleteTask}
+          onEdit={handleEditTaskInline}
+        />
+      )}
       <div className="w-full max-w-7xl mx-auto px-4 flex justify-end mt-4">
         {/* Remove the RealEstate button */}
       </div>
@@ -1498,45 +1699,137 @@ export default function Dashboard() {
         </TabsList>
         <>
           <TabsContent value="dashboard">
-            <div className="w-full max-w-7xl mx-auto px-4 pt-6 pb-2 flex flex-col md:flex-row md:items-center md:justify-between">
-                           <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-1">Dashboard</h1>
-                <div className="text-gray-600 text-base">Welcome, {userName}!</div>
+            <div className="w-full max-w-7xl mx-auto px-4 pt-6 pb-2 flex flex-col md:flex-row md:items-center md:justify-between bg-[var(--gm-white)] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-[var(--color-border)]">
+              <div>
+                <h1 className="text-4xl font-extrabold text-[var(--gm-dark)] mb-2">Dashboard</h1>
+                <div className="text-[var(--gm-aqua)] text-lg font-medium">Welcome, {userName}!</div>
               </div>
-              <div className="text-gray-500 text-sm mt-2 md:mt-0">{todayStr}</div>
+              <div className="font-medium text-base mt-2 md:mt-0 bg-[var(--gm-dark)] text-[var(--gm-white)] px-4 py-1 rounded-full shadow-sm border border-[rgba(63,255,224,0.25)]">{todayStr}</div>
             </div>
             <div className="w-full max-w-7xl mx-auto px-4 flex gap-4 mb-4">
               <button onClick={() => setMindMapView('daily')} className={`px-4 py-2 rounded-lg font-medium ${mindMapView==='daily'?'bg-blue-600 text-white':'bg-gray-100 text-gray-700'}`}>Daily Tasks</button>
             </div>
-            <div className="w-full max-w-7xl mx-auto px-4 mb-2 flex items-center gap-2">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search tasks, projects, people..."
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-gray-50/50"
-              />
+            <div className="w-full max-w-7xl mx-auto px-4 mb-4 flex items-center gap-2 relative">
+              <div className="relative w-full flex items-center">
+                <div className="absolute left-4 text-indigo-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search tasks, projects, people..."
+                  id="dashboard-search"
+                  className="w-full pl-12 pr-12 py-3 border-0 rounded-full focus:ring-2 focus:ring-[var(--gm-aqua)]/40 transition-all duration-300 bg-white shadow-lg hover:shadow-xl focus:shadow-xl text-slate-900 placeholder-slate-400"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')} 
+                    className="absolute right-4 p-1.5 rounded-full bg-indigo-100 text-indigo-500 hover:bg-indigo-200 transition-all duration-300"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              {/* Live search dropdown */}
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="ml-2 px-3 py-2 rounded bg-gray-200 text-gray-700">Clear</button>
+                <div className="absolute left-4 right-4 top-14 bg-[var(--gm-white)]/95 backdrop-blur-sm border border-[var(--color-border)] rounded-2xl shadow-[0_8px_28px_rgba(0,0,0,0.08)] z-10 max-h-72 overflow-auto p-2 animate-fadeIn">
+                  {(mindMapRoot?.children || [])
+                    .filter(n => (n.title || '').toLowerCase().includes(searchQuery.toLowerCase()))
+                    .slice(0, 8)
+                    .map(n => {
+                      // Determine tag color based on node type or properties
+                      const tagColor = n.type === 'project' ? 
+                        'bg-gradient-to-r from-purple-500 to-indigo-500' : 
+                        n.priority === 'high' ? 
+                        'bg-gradient-to-r from-red-500 to-rose-500' : 
+                        n.priority === 'medium' ? 
+                        'bg-gradient-to-r from-amber-400 to-orange-500' : 
+                        'bg-gradient-to-r from-emerald-400 to-teal-500';
+                      
+                      return (
+                        <button
+                          key={n.id}
+                          className="w-full text-left px-4 py-3 my-1 hover:bg-indigo-50/80 rounded-xl flex items-center gap-3 transition-all duration-300 hover:shadow-md group"
+                          onClick={() => {
+                            setModalNode({
+                              id: n.id,
+                              title: n.title || '',
+                              description: n.description || '',
+                              completed: !!n.completed,
+                              deadline: n.deadline || null,
+                            });
+                            setShowDetailModal(true);
+                          }}
+                        >
+                          <span className={`inline-block w-3 h-3 rounded-full bg-[var(--gm-aqua)] shadow-sm group-hover:scale-125 transition-all duration-300`} />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-slate-800">{n.title}</span>
+                            {n.deadline && (
+                              <p className="text-xs text-indigo-500 flex items-center gap-1 mt-0.5">
+                                <CalendarIcon className="w-3 h-3" /> {new Date(n.deadline).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                           {n.completed ? (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-500 text-white shadow-sm">
+                              Completed
+                            </span>
+                          ) : (
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium bg-[rgba(63,255,224,0.12)] text-[var(--gm-aqua)] shadow-sm`}>
+                              {n.type || 'Task'}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  {((mindMapRoot?.children || []).filter(n => (n.title || '').toLowerCase().includes(searchQuery.toLowerCase())).length === 0) && (
+                    <div className="px-4 py-3 text-sm text-indigo-400 italic text-center">No results found</div>
+                  )}
+                </div>
               )}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-7xl mx-auto px-4 py-4">
-              <div ref={containerRef} className="relative flex flex-col items-center bg-white rounded-xl shadow-sm border border-gray-200 p-6 col-span-2" style={{ minHeight: 300 }}>
-                <h2 className="text-xl font-semibold text-gray-800 mb-4" aria-label="Task Mind Map">Interactive Task Mind Map</h2>
-                <div className="flex gap-2 mb-2">
-                  <button onClick={handleZoomOut} className="px-3 py-1 rounded bg-gray-200 text-gray-700">-</button>
-                  <button onClick={handleZoomIn} className="px-3 py-1 rounded bg-gray-200 text-gray-700">+</button>
-                  <span className="text-gray-500">Zoom: {(zoom * 100).toFixed(0)}%</span>
+              <div ref={containerRef} className="relative flex flex-col items-center bg-gradient-to-br from-slate-50 to-indigo-50 rounded-xl shadow-lg border border-indigo-100/50 p-6 col-span-2" style={{ minHeight: 300 }}>
+                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-4" aria-label="Task Mind Map">Interactive Task Mind Map</h2>
+                <div className="flex gap-3 mb-4">
+                  <button 
+                    onClick={handleZoomOut} 
+                    className="px-4 py-2 rounded-full bg-white shadow-md text-indigo-600 hover:bg-indigo-50 hover:shadow-lg transition-all duration-300 flex items-center justify-center"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={handleZoomIn} 
+                    className="px-4 py-2 rounded-full bg-white shadow-md text-indigo-600 hover:bg-indigo-50 hover:shadow-lg transition-all duration-300 flex items-center justify-center"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                  <span className="px-4 py-2 rounded-full bg-white/80 text-indigo-700 font-medium shadow-md">
+                    Zoom: {(zoom * 100).toFixed(0)}%
+                  </span>
                 </div>
                 <canvas
                   ref={canvasRef}
                   width={800}
                   height={600}
-                  style={{ width: '100%', maxWidth: 800, height: 600, border: '1px solid #e5e7eb', background: '#fff', cursor: draggingNodeId ? 'grabbing' : isPanning ? 'grabbing' : 'grab' }}
+                  style={{ 
+                    width: '100%', 
+                    maxWidth: 800, 
+                    height: 600, 
+                    border: '1px solid rgba(99, 102, 241, 0.1)', 
+                    borderRadius: '0.75rem',
+                    background: 'linear-gradient(135deg, #f0f4ff, #eef2ff, #f5f3ff)', 
+                    boxShadow: '0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06)',
+                    cursor: draggingNodeId ? 'grabbing' : isPanning ? 'grabbing' : 'grab' 
+                  }}
                   onMouseDown={handleCanvasMouseDown}
                   onMouseMove={handleCanvasMouseMove}
                   onMouseUp={handleCanvasMouseUp}
                   onMouseLeave={handleCanvasMouseUp}
+                  className="transition-shadow duration-300 hover:shadow-lg"
                 />
                 {positions.root && positions.children.length > 0 && positions.container && (
                   <svg
@@ -1601,7 +1894,7 @@ export default function Dashboard() {
               <DndProvider backend={HTML5Backend}>
                 <div className="space-y-6 col-span-1" style={{ maxWidth: 340 }}>
                   <h2 className="text-lg font-semibold text-gray-800 mb-2" aria-label="Calendar">Calendar</h2>
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 ring-1 ring-black/5">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-gray-900">Calendar</h3>
                       <div className="flex gap-2">
@@ -1641,7 +1934,7 @@ export default function Dashboard() {
                     />
                   </div>
                   <h2 className="text-lg font-semibold text-gray-800 mb-2" aria-label="Today's Tasks">Today's Tasks</h2>
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 ring-1 ring-black/5">
                     <div className="flex items-center gap-2 mb-4">
                       <Clock className="w-5 h-5 text-blue-500" />
                       <h3 className="text-lg font-semibold text-gray-900">Today's Tasks</h3>
@@ -1662,99 +1955,142 @@ export default function Dashboard() {
                       )}
                     </div>
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-800 mb-2" aria-label="Quick Stats">Quick Stats</h2>
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span className="text-sm text-gray-600">Completed Today</span>
+                  <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-3" aria-label="Quick Stats">Quick Stats</h2>
+                  <div className="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-xl shadow-lg border border-indigo-100/50 p-6">
+                    <h3 className="text-xl font-bold text-indigo-700 mb-5 border-b border-indigo-100 pb-2">Quick Stats</h3>
+                    <div className="space-y-5">
+                      <div className="bg-gradient-to-r from-green-400 to-emerald-500 rounded-xl p-4 shadow-lg shadow-green-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-green-500/30">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-white/20 p-2 rounded-lg">
+                              <CheckCircle className="w-5 h-5 text-white" />
+                            </div>
+                            <span className="text-sm font-semibold text-white">Completed Today</span>
+                          </div>
+                          <span className="text-xl font-bold text-white bg-white/20 px-3 py-1 rounded-full">
+                            {notes.filter(note => note.completed && new Date(note.updated_at).toDateString() === new Date().toDateString()).length}
+                          </span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">
-                          {notes.filter(note => note.completed && new Date(note.updated_at).toDateString() === new Date().toDateString()).length}
-                        </span>
+                        <div className="mt-3 bg-white/10 h-2 rounded-full overflow-hidden">
+                          <div className="bg-white h-full rounded-full" style={{ width: `${Math.min(100, notes.filter(note => note.completed && new Date(note.updated_at).toDateString() === new Date().toDateString()).length * 10)}%` }}></div>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-blue-500" />
-                          <span className="text-sm text-gray-600">Pending Tasks</span>
+                      
+                      <div className="bg-gradient-to-r from-blue-400 to-indigo-500 rounded-xl p-4 shadow-lg shadow-blue-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-white/20 p-2 rounded-lg">
+                              <Clock className="w-5 h-5 text-white" />
+                            </div>
+                            <span className="text-sm font-semibold text-white">Pending Tasks</span>
+                          </div>
+                          <span className="text-xl font-bold text-white bg-white/20 px-3 py-1 rounded-full">
+                            {notes.filter(note => !note.completed).length}
+                          </span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">
-                          {notes.filter(note => !note.completed).length}
-                        </span>
+                        <div className="mt-3 bg-white/10 h-2 rounded-full overflow-hidden">
+                          <div className="bg-white h-full rounded-full" style={{ width: `${Math.min(100, notes.filter(note => !note.completed).length * 5)}%` }}></div>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Target className="w-4 h-4 text-purple-500" />
-                          <span className="text-sm text-gray-600">Active Projects</span>
+                      
+                      <div className="bg-gradient-to-r from-purple-400 to-fuchsia-500 rounded-xl p-4 shadow-lg shadow-purple-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-white/20 p-2 rounded-lg">
+                              <Target className="w-5 h-5 text-white" />
+                            </div>
+                            <span className="text-sm font-semibold text-white">Active Projects</span>
+                          </div>
+                          <span className="text-xl font-bold text-white bg-white/20 px-3 py-1 rounded-full">
+                            {notes.filter(note => note.type === 'project' && !note.completed).length}
+                          </span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">
-                          {notes.filter(note => note.type === 'project' && !note.completed).length}
-                        </span>
+                        <div className="mt-3 bg-white/10 h-2 rounded-full overflow-hidden">
+                          <div className="bg-white h-full rounded-full" style={{ width: `${Math.min(100, notes.filter(note => note.type === 'project' && !note.completed).length * 20)}%` }}></div>
+                        </div>
                       </div>
                     </div>
                   </div>
                   {/* Routine Tasks Checklist */}
-                  <h2 className="text-lg font-semibold text-gray-800 mb-2" aria-label="Routine Tasks">Routine Tasks</h2>
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <h3 className="text-lg font-semibold text-gray-900">Daily Routine</h3>
+                  <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-3" aria-label="Routine Tasks">Routine Tasks</h2>
+                  <div className="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-xl shadow-lg border border-indigo-100/50 p-6">
+                    <div className="flex items-center gap-3 mb-5 border-b border-indigo-100 pb-3">
+                      <div className="bg-gradient-to-r from-green-400 to-emerald-500 p-2 rounded-lg shadow-md shadow-green-500/20">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-indigo-700">Daily Routine</h3>
                     </div>
-                    <div className="space-y-3 max-h-60 overflow-y-auto">
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                       {routineTasks.length === 0 ? (
-                        <p className="text-gray-500 text-sm">No routine tasks for today</p>
+                        <p className="text-indigo-500 text-sm italic">No routine tasks for today</p>
                       ) : (
-                        routineTasks.slice(0, 10).map(task => (
-                          <div key={task._id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await updateNote(task._id, { ...task, completed: true });
-                                  await loadRoutineTasks(); // Refresh the tasks
-                                  toast.success('Task completed!');
-                                } catch (error) {
-                                  toast.error('Failed to update task');
-                                }
-                              }}
-                              className="w-4 h-4 border-2 border-gray-300 rounded hover:border-green-500 transition-colors flex items-center justify-center"
+                        routineTasks.slice(0, 10).map(task => {
+                          // Determine priority color based on task properties
+                          const priorityColor = task.priority === 'high' || task.color === 'red' ? 
+                            'from-red-400 to-rose-500 shadow-red-500/30' : 
+                            task.priority === 'medium' || task.color === 'amber' ? 
+                            'from-amber-400 to-orange-500 shadow-orange-500/30' : 
+                            'from-green-400 to-emerald-500 shadow-green-500/30';
+                            
+                          return (
+                            <div 
+                              key={task._id} 
+                              className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${task.completed ? 
+                                'bg-slate-100/50' : 
+                                'hover:bg-white hover:shadow-md'}`}
                             >
-                              {task.completed && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
-                            </button>
-                            <div className="flex-1">
-                              <p className={`text-sm font-medium ${task.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
-                                {task.title}
-                              </p>
-                              {task.deadline && (
-                                <p className="text-xs text-gray-500">
-                                  {new Date(task.deadline).toLocaleDateString()}
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await updateNote(task._id, { ...task, completed: true });
+                                    await loadRoutineTasks(); // Refresh the tasks
+                                    toast.success('Task completed!');
+                                  } catch (error) {
+                                    toast.error('Failed to update task');
+                                  }
+                                }}
+                                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${task.completed ? 
+                                  'bg-gradient-to-r from-green-400 to-emerald-500 shadow-md shadow-green-500/30' : 
+                                  'border-2 border-indigo-200 hover:border-indigo-400 hover:scale-110'}`}
+                              >
+                                {task.completed && (
+                                  <CheckIcon className="w-4 h-4 text-white animate-scale-check" />
+                                )}
+                              </button>
+                              <div className="flex-1">
+                                <p className={`text-sm font-medium transition-all duration-300 ${task.completed ? 
+                                  'text-slate-400 line-through' : 
+                                  'text-slate-700'}`}>
+                                  {task.title}
                                 </p>
-                              )}
+                                {task.deadline && (
+                                  <p className="text-xs text-indigo-400">
+                                    {new Date(task.deadline).toLocaleDateString()}
+                                  </p>
+                                )}
+                              </div>
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm transition-all duration-300 hover:shadow-md hover:scale-105 bg-gradient-to-r ${priorityColor} text-white`}>
+                                {task.tags?.[0] || 'routine'}
+                              </span>
                             </div>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              task.color === 'blue' ? 'bg-blue-100 text-blue-800' :
-                              task.color === 'green' ? 'bg-green-100 text-green-800' :
-                              task.color === 'purple' ? 'bg-purple-100 text-purple-800' :
-                              task.color === 'amber' ? 'bg-amber-100 text-amber-800' :
-                              task.color === 'red' ? 'bg-red-100 text-red-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {task.tags?.[0] || 'routine'}
-                            </span>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                     {/* Completed Tasks Section */}
                     {completedTasks.length > 0 && (
-                      <div className="mt-6 pt-4 border-t border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Completed ({completedTasks.length})</h4>
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                      <div className="mt-6 pt-4 border-t border-indigo-100">
+                        <h4 className="text-sm font-bold text-indigo-600 mb-3 flex items-center gap-2">
+                          <div className="w-4 h-4 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 shadow-sm shadow-green-500/30"></div>
+                          Completed ({completedTasks.length})
+                        </h4>
+                        <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
                           {completedTasks.slice(0, 5).map(task => (
-                            <div key={task._id} className="flex items-center gap-2 p-1">
-                              <CheckCircle className="w-3 h-3 text-green-500" />
-                              <p className="text-xs text-gray-500 line-through">{task.title}</p>
+                            <div key={task._id} className="flex items-center gap-2 p-2 rounded-lg bg-white/50 hover:bg-white transition-all duration-300">
+                              <div className="w-4 h-4 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center shadow-sm">
+                                <CheckIcon className="w-2 h-2 text-white" />
+                              </div>
+                              <p className="text-xs text-slate-400 line-through">{task.title}</p>
                             </div>
                           ))}
                         </div>
@@ -1768,23 +2104,43 @@ export default function Dashboard() {
               <div className="max-w-7xl mx-auto px-4 mt-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-800 mb-2" aria-label="Overdue Tasks">Overdue Tasks</h2>
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <AlertCircle className="w-5 h-5 text-red-500" />
-                        <h3 className="text-lg font-semibold text-gray-900">Overdue</h3>
+                    <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600 mb-3" aria-label="Overdue Tasks">Overdue Tasks</h2>
+                    <div className="bg-gradient-to-br from-slate-50 to-rose-50 rounded-xl shadow-lg border border-rose-100/50 p-6">
+                      <div className="flex items-center gap-3 mb-5 border-b border-rose-100 pb-3">
+                        <div className="bg-gradient-to-r from-red-500 to-rose-600 p-2 rounded-lg shadow-md shadow-red-500/20">
+                          <AlertCircle className="w-5 h-5 text-white animate-pulse" />
+                        </div>
+                        <h3 className="text-xl font-bold text-rose-700">Overdue</h3>
                       </div>
                       <div className="space-y-3">
                         {overdueTasks.length === 0 ? (
-                          <p className="text-gray-500 text-sm">No overdue tasks</p>
+                          <p className="text-rose-500 text-sm italic">No overdue tasks</p>
                         ) : (
                           overdueTasks.map(task => (
-                            <div key={task._id} className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                            <div 
+                              key={task._id} 
+                              className="flex items-center gap-3 p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl shadow-sm hover:shadow-md hover:from-red-100 hover:to-rose-100 transition-all duration-300 border border-rose-100"
+                            >
+                              <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-rose-600 rounded-full shadow-sm shadow-red-500/30 animate-pulse"></div>
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">{task.title}</p>
-                                <p className="text-xs text-red-500">Overdue: {formatDate(task.deadline)}</p>
+                                <p className="text-sm font-semibold text-slate-800">{task.title}</p>
+                                <p className="text-xs font-medium text-rose-600 flex items-center gap-1 mt-1">
+                                  <Clock className="w-3 h-3" /> Overdue: {formatDate(task.deadline)}
+                                </p>
                               </div>
+                              <button 
+                                className="p-2 rounded-full bg-white shadow-sm hover:shadow-md hover:bg-rose-50 transition-all duration-300"
+                                onClick={async () => {
+                                  try {
+                                    await updateNote(task._id, { ...task, completed: true });
+                                    toast.success('Task marked as complete!');
+                                  } catch (error) {
+                                    toast.error('Failed to update task');
+                                  }
+                                }}
+                              >
+                                <CheckIcon className="w-4 h-4 text-rose-500" />
+                              </button>
                             </div>
                           ))
                         )}
@@ -1792,23 +2148,39 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-800 mb-2" aria-label="Upcoming Tasks">Upcoming Tasks</h2>
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Target className="w-5 h-5 text-purple-500" />
-                        <h3 className="text-lg font-semibold text-gray-900">Upcoming</h3>
+                    <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-3" aria-label="Upcoming Tasks">Upcoming Tasks</h2>
+                    <div className="bg-gradient-to-br from-slate-50 to-purple-50 rounded-xl shadow-lg border border-purple-100/50 p-6">
+                      <div className="flex items-center gap-3 mb-5 border-b border-purple-100 pb-3">
+                        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-2 rounded-lg shadow-md shadow-purple-500/20">
+                          <Target className="w-5 h-5 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-purple-700">Upcoming</h3>
                       </div>
                       <div className="space-y-3">
                         {upcomingTasks.length === 0 ? (
-                          <p className="text-gray-500 text-sm">No upcoming tasks</p>
+                          <p className="text-purple-500 text-sm italic">No upcoming tasks</p>
                         ) : (
                           upcomingTasks.slice(0, 10).map(task => (
-                            <div key={task._id} className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                            <div 
+                              key={task._id} 
+                              className="flex items-center gap-3 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl shadow-sm hover:shadow-md hover:from-indigo-100 hover:to-purple-100 transition-all duration-300 border border-purple-100"
+                            >
+                              <div className="w-3 h-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full shadow-sm shadow-purple-500/30"></div>
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">{task.title}</p>
-                                <p className="text-xs text-purple-500">{formatDate(task.deadline)}</p>
+                                <p className="text-sm font-semibold text-slate-800">{task.title}</p>
+                                <p className="text-xs font-medium text-purple-600 flex items-center gap-1 mt-1">
+                                  <CalendarIcon className="w-3 h-3" /> {formatDate(task.deadline)}
+                                </p>
                               </div>
+                              <button 
+                                className="p-2 rounded-full bg-white shadow-sm hover:shadow-md hover:bg-purple-50 transition-all duration-300"
+                                onClick={() => {
+                                  // Navigate to task detail or open modal
+                                  toast.success('Task details opened!');
+                                }}
+                              >
+                                <Edit className="w-4 h-4 text-purple-500" />
+                              </button>
                             </div>
                           ))
                         )}
@@ -1821,62 +2193,6 @@ export default function Dashboard() {
             {showDetailModal && modalNode && modalNode.userNotes ? (
               <UserNotesModal modalNode={modalNode} onClose={() => setShowDetailModal(false)} />
             ) : null}
-            {showDetailModal && modalNode && (
-              <Modal isOpen={showDetailModal} onClose={() => setShowDetailModal(false)}>
-                <div className="p-6">
-                  {((mindMapView === 'projects' && modalNode.icon === 'users') || (mindMapView === 'people' && modalNode.icon === 'target')) && modalNode.relatedNotes ? (
-                    <>
-                      <h2 className="text-xl font-bold mb-2">{modalNode.title}</h2>
-                      {modalNode.project && (
-                        <div className="mb-2 text-sm text-gray-600">Project: <span className="font-semibold">{modalNode.project.name}</span></div>
-                      )}
-                      {['task', 'note', 'daily task', 'project'].map(type => {
-                        const group = modalNode.relatedNotes.filter(note => (note.type || '').toLowerCase().includes(type));
-                        if (group.length === 0) return null;
-                        return (
-                          <div key={type} className="mb-4">
-                            <h3 className="text-lg font-semibold mb-2 capitalize">{type.replace('task', 'Tasks').replace('note', 'Notes')}</h3>
-                            <ul className="space-y-2">
-                              {group.map(note => (
-                                <li key={note._id} className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <input type="checkbox" checked={!!note.completed} onChange={() => handleModalCompleteNote(note)} disabled={!!note.completed} className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500" />
-                                    <div>
-                                      <div className="font-medium text-gray-900">{note.title}</div>
-                                      {note.tags && note.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-1">
-                                          {note.tags.map((tag, idx) => (
-                                            <span key={tag + '-' + idx} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">{tag}</span>
-                                          ))}
-                                        </div>
-                                      )}
-                                      {note.description && (
-                                        <div className="text-xs text-gray-600 mt-1">{note.description}</div>
-                                      )}
-                                      {note.delegated_to && (
-                                        <div className="text-xs text-yellow-600 mt-1">Delegated to: {note.delegated_to}</div>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <button onClick={() => handleModalTrashNote(note)} className="ml-4 p-2 text-red-500 hover:text-red-700 rounded-full" title="Move to Trash">✖</button>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        );
-                      })}
-                      <button onClick={() => setShowDetailModal(false)} className="mt-6 px-4 py-2 rounded bg-blue-600 text-white">Close</button>
-                    </>
-                  ) : (
-                    <>
-                      <h2 className="text-xl font-bold mb-2">{modalNode.title}</h2>
-                      {modalNode.description && <p className="mb-2">{modalNode.description}</p>}
-                      <button onClick={() => setShowDetailModal(false)} className="mt-4 px-4 py-2 rounded bg-blue-600 text-white">Close</button>
-                    </>
-                  )}
-                </div>
-              </Modal>
-            )}
           </TabsContent>
         </>
       </Tabs>
@@ -1888,4 +2204,6 @@ export default function Dashboard() {
       />
     </>
   );
-}
+};
+
+export default Dashboard;

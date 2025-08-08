@@ -1,0 +1,62 @@
+/* Node expand/collapse styles */
+.mindmap-node.collapsed {
+  opacity: 0.8;
+}
+
+.mindmap-node.collapsed:hover {
+  opacity: 1;
+}
+
+.expand-collapse-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: -24px;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.expand-collapse-btn:hover {
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Transition for expanding/collapsing */
+.mindmap-node {
+  transition: all 0.3s ease-in-out;
+}
+
+.mindmap-node.collapsed .node-content {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.mindmap-node .node-content {
+  max-height: 500px;
+  opacity: 1;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Visual indicator for nodes with children */
+.has-children::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}

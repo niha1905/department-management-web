@@ -42,33 +42,33 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+    <div className="min-h-screen flex items-center justify-center gm-dark-section p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-gray-100"
+        className="max-w-md w-full bg-[var(--gm-white)] p-8 rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.12)] border border-[var(--color-border)]"
       >
         <div className="text-center mb-8">
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-[var(--gm-aqua)]/15"
           >
-            <LockClosedIcon className="w-8 h-8 text-blue-600" />
+            <LockClosedIcon className="w-8 h-8 text-[var(--gm-aqua)]" />
           </motion.div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+          <p className="text-white/80">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-200 mb-1">
               Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                <EnvelopeIcon className="h-5 w-5 text-slate-400" />
               </div>
               <input
                 type="email"
@@ -83,12 +83,12 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-slate-200 mb-1">
               Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                <LockClosedIcon className="h-5 w-5 text-slate-400" />
               </div>
               <input
                 type="password"
@@ -127,7 +127,7 @@ export default function Login() {
             type="submit"
             disabled={isLoading}
             className={cn(
-              "w-full py-3 rounded-lg font-medium transition-all",
+              "w-full py-3 rounded-2xl font-medium transition-all",
               buttonVariants.primary,
               isLoading && "opacity-75 cursor-not-allowed"
             )}
@@ -147,9 +147,9 @@ export default function Login() {
         </form>
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-white/80">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link to="/signup" className="text-[var(--gm-aqua)] hover:opacity-80 font-medium">
               Sign up
             </Link>
           </p>

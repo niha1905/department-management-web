@@ -1,10 +1,13 @@
 
 import React from 'react';
 import { RocketLaunchIcon, ShieldCheckIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import PageHeader from '../components/PageHeader';
 
 export default function About() {
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="w-full">
+      <PageHeader title="About" subtitle="Learn more about Grand Magnum AI Dashboard" />
+      <div className="max-w-7xl mx-auto px-6 py-6">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">About Grand Magnum AI Dashboard</h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -46,6 +49,7 @@ export default function About() {
           and innovation. We believe in making advanced analytics accessible to everyone, from small businesses to 
           large enterprises.
         </p>
+      </div>
       </div>
     </div>
   );

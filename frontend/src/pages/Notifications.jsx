@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import PageHeader from '../components/PageHeader';
 import { BellIcon, EnvelopeIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 
 // Main notifications page (currently static demo, can be connected to notificationService)
@@ -39,32 +40,34 @@ export default function Notifications() {
 
   // Renders UI for notifications list, tabs, empty state
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="w-full">
+      <PageHeader title="Notifications" subtitle="Stay updated with your latest activities" />
+      <div className="max-w-4xl mx-auto px-4 pt-6 pb-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-4xl mx-auto"
+        className=""
       >
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-[var(--gm-aqua)]/15"
           >
-            <BellIcon className="w-8 h-8 text-blue-600" />
+            <BellIcon className="w-8 h-8 text-[var(--gm-aqua)]" />
           </motion.div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Notifications</h1>
           <p className="text-gray-600">Stay updated with your latest activities</p>
         </div>
 
-        <div className="flex space-x-4 mb-8 border-b">
+        <div className="flex space-x-4 mb-6 border-b border-[var(--color-border)]">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className={`flex items-center px-6 py-3 font-medium rounded-t-lg transition-colors ${
               activeTab === "all" 
-                ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600" 
+                ? "bg-[rgba(63,255,224,0.12)] text-[var(--gm-aqua)] border-b-2 border-[var(--gm-aqua)]" 
                 : "text-gray-600 hover:bg-gray-50"
             }`}
             onClick={() => setActiveTab("all")}
@@ -77,7 +80,7 @@ export default function Notifications() {
             whileTap={{ scale: 0.98 }}
             className={`flex items-center px-6 py-3 font-medium rounded-t-lg transition-colors ${
               activeTab === "unread" 
-                ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600" 
+                ? "bg-[rgba(63,255,224,0.12)] text-[var(--gm-aqua)] border-b-2 border-[var(--gm-aqua)]" 
                 : "text-gray-600 hover:bg-gray-50"
             }`}
             onClick={() => setActiveTab("unread")}
@@ -94,11 +97,11 @@ export default function Notifications() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * index }}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100"
+              className="bg-[var(--gm-white)] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_28px_rgba(0,0,0,0.08)] transition-shadow p-6 border border-[var(--color-border)]"
             >
               <div className="flex items-start gap-4">
-                <div className={`p-3 bg-${notification.color}-100 rounded-lg`}>
-                  <notification.icon className={`w-6 h-6 text-${notification.color}-600`} />
+                <div className={`p-3 rounded-lg ${notification.color === 'blue' ? 'bg-[var(--gm-aqua)]/15 text-[var(--gm-aqua)]' : notification.color === 'green' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                  <notification.icon className={`w-6 h-6`} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
@@ -124,6 +127,7 @@ export default function Notifications() {
           </motion.div>
         )}
       </motion.div>
+      </div>
     </div>
   );
 }

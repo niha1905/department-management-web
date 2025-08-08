@@ -3,40 +3,40 @@ export const cn = (...classes) => classes.filter(Boolean).join(' ');
 
 // Button variant styles
 export const buttonVariants = {
-  primary: 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow',
-  secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-700',
-  success: 'bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow',
-  danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow',
-  warning: 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm hover:shadow',
-  link: 'text-blue-600 hover:underline',
+  primary: 'bg-[var(--gm-yellow)] hover:bg-[#D5E536] text-[#1a1a1a] shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 rounded-2xl',
+  secondary: 'bg-[var(--gm-aqua)] hover:bg-[#5FFFF3] text-[#05343a] shadow-sm hover:shadow transform hover:scale-[1.02] transition-all duration-200 rounded-2xl',
+  success: 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 rounded-2xl',
+  danger: 'bg-rose-500 hover:bg-rose-600 text-white shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 rounded-2xl',
+  warning: 'bg-amber-400 hover:bg-amber-500 text-black shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 rounded-2xl',
+  link: 'text-[var(--gm-aqua)] hover:text-[#5FFFF3] hover:underline transition-colors duration-200',
 };
 
-// Color mapping for tags and UI elements
+// Enhanced color mapping for tags and UI elements with gradients
 export const colorMap = {
-  'blue': 'bg-blue-100 text-blue-800',
-  'green': 'bg-green-100 text-green-800',
-  'purple': 'bg-purple-100 text-purple-800',
-  'amber': 'bg-amber-100 text-amber-800',
-  'red': 'bg-red-100 text-red-800',
-  'teal': 'bg-teal-100 text-teal-800',
-  'indigo': 'bg-indigo-100 text-indigo-800',
-  'cyan': 'bg-cyan-100 text-cyan-800',
-  'pink': 'bg-pink-100 text-pink-800',
-  'lime': 'bg-lime-100 text-lime-800',
+  'blue': 'bg-blue-50 text-blue-800 shadow-sm',
+  'green': 'bg-emerald-50 text-emerald-800 shadow-sm',
+  'purple': 'bg-purple-50 text-purple-800 shadow-sm',
+  'amber': 'bg-amber-50 text-amber-800 shadow-sm',
+  'red': 'bg-rose-50 text-rose-800 shadow-sm',
+  'teal': 'bg-teal-50 text-teal-800 shadow-sm',
+  'indigo': 'bg-indigo-50 text-indigo-800 shadow-sm',
+  'cyan': 'bg-cyan-50 text-cyan-800 shadow-sm',
+  'pink': 'bg-pink-50 text-pink-800 shadow-sm',
+  'lime': 'bg-lime-50 text-lime-800 shadow-sm',
 };
 
 // Form input styles
-export const inputStyles = 'w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200';
+export const inputStyles = 'w-full px-3 py-2 border border-[var(--color-border)] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--gm-aqua)]/40 focus:border-[var(--gm-aqua)] transition-all duration-200 bg-[var(--gm-white)]';
 
 // Textarea styles
-export const textareaStyles = 'w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-none';
+export const textareaStyles = 'w-full px-3 py-2 border border-[var(--color-border)] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--gm-aqua)]/40 focus:border-[var(--gm-aqua)] transition-all duration-200 resize-none bg-[var(--gm-white)]';
 
 // Select styles
-export const selectStyles = 'w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white';
+export const selectStyles = 'w-full px-3 py-2 border border-[var(--color-border)] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--gm-aqua)]/40 focus:border-[var(--gm-aqua)] transition-all duration-200 bg-[var(--gm-white)]';
 
-// Card style variants
+// Enhanced card style variants with gradients and effects
 export const cardVariants = {
-  default: 'bg-white rounded-xl shadow-sm border border-gray-100',
-  hover: 'transition-all duration-200 hover:shadow-md',
-  active: 'border-blue-200 ring-2 ring-blue-100',
+  default: 'bg-[var(--gm-white)] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-[var(--color-border)]',
+  hover: 'transition-all duration-300 hover:shadow-[0_8px_28px_rgba(0,0,0,0.08)] hover:transform hover:scale-[1.02]',
+  active: 'border-[var(--gm-aqua)]/40 ring-2 ring-[var(--gm-aqua)]/20 shadow-lg shadow-[rgba(63,255,224,0.2)]',
 };

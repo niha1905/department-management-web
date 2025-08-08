@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/Tabs';
 import HierarchicalMindmap from '../components/mindmap2/HierarchicalMindMap';
 import { Users, FolderOpen } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 export default function HierarchicalMindmapPage() {
   const [viewType, setViewType] = useState('people');
 
   return (
-    <div className="p-4 h-full flex flex-col">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold mb-4">Hierarchical Mindmap</h1>
+    <div className="h-full flex flex-col w-full">
+      <div className="mb-2">
+        <PageHeader title="Hierarchical Mindmap" />
+      </div>
+      <div className="p-4 flex-1">
         <Tabs defaultValue="people" onValueChange={setViewType} className="w-full">
           <TabsList className="grid grid-cols-2 w-80">
             <TabsTrigger value="people" className="flex items-center gap-2">

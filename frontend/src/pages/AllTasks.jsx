@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchUsers, fetchNotes } from "../services/api";
+import PageHeader from '../components/PageHeader';
 
 // Simple modal for showing note details
 function Modal({ open, onClose, children }) {
@@ -7,7 +8,7 @@ function Modal({ open, onClose, children }) {
   return (
     <div style={{
       position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
-      background: "rgba(0,0,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
+      background: "rgb(255, 250, 250)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
     }}>
       <div style={{
         background: "#fff", borderRadius: 12, padding: 24, minWidth: 320, maxWidth: 400, boxShadow: "0 4px 32px rgba(0,0,0,0.15)"
@@ -50,15 +51,9 @@ export default function AllTasks() {
 
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f8fa", paddingTop: "2rem" }}>
-      <h1 style={{
-        textAlign: "center",
-        fontWeight: "bold",
-        fontSize: "2rem",
-        marginBottom: "2rem"
-      }}>
-        Connections
-      </h1>
+    <div className="w-full">
+      <PageHeader title="Connections" subtitle="Explore user-task relationships" />
+      <div style={{ minHeight: "100vh", background: "#f6f8fa", paddingTop: "1rem" }}>
 
       {/* User Circle */}
       <div style={{
@@ -197,6 +192,7 @@ export default function AllTasks() {
           </div>
         )}
       </Modal>
+      </div>
     </div>
   );
 }

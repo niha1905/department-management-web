@@ -117,6 +117,7 @@ class ChatController:
             sender = data.get('sender')
             sender_name = data.get('senderName')
             message_type = data.get('type', 'text')
+            file_info = data.get('file')  # Optional, for file messages
             
             if not all([chat_id, content, sender]):
                 return jsonify({"error": "Missing required fields"}), 400
@@ -145,6 +146,16 @@ class ChatController:
                 "edited": False,
                 "deleted": False
             }
+            # If file metadata provided, store it on the message
+            if message_type == 'file' and isinstance(file_info, dict):
+                # Only persist known safe fields
+                message_data['file'] = {
+                    key: file_info.get(key)
+                    for key in [
+                        'filename', 'originalName', 'fileSize', 'mimeType', 'url'
+                    ]
+                    if key in file_info
+                }
             
             result = self.messages.insert_one(message_data)
             message_data['_id'] = str(result.inserted_id)

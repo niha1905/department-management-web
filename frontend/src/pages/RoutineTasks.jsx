@@ -10,6 +10,7 @@ import TaskPanel from '../components/TaskPanel';
 import AddTaskForm from '../components/AddTaskForm';
 import YearlyCalendar from '../components/YearlyCalendar';
 import { createNote, updateNote, deleteNote } from '../services/api';
+import PageHeader from '../components/PageHeader';
 
 const getWeekDates = (date) => {
   const start = moment(date).startOf("week");
@@ -236,110 +237,21 @@ const RoutineTasks = () => {
     : tasks;
 
   return (
-    <div
-      className="routine-tasks-container flex h-full"
-      style={{ background: "#ffffff", color: "#333333", minHeight: "100vh" }}
-    >
-      {/* Sidebar */}
-      <aside
-        className="sidebar w-72 p-4 border-r"
-        style={{ background: "#ffffff", color: "#333333", borderColor: "#e5e7eb" }}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="font-semibold text-lg">This Month</h2>
-          <button
-            onClick={handleYearlyToggle}
-            aria-label="Open yearly planner"
-            style={{ background: "#f0f0f0", color: "#333333", borderRadius: 4, padding: "2px 8px", border: "1px solid #e5e7eb" }}
-          >
-            <CalendarIcon className="w-5 h-5" />
-          </button>
-        </div>
-        <MonthTable
-          year={selectedDate.year()}
-          month={selectedDate.month()}
-          tasksByDate={tasksByDate}
-          onDayClick={handleMiniDateClick}
-          onPrevMonth={() => handleMonthNav(-1)}
-          onNextMonth={() => handleMonthNav(1)}
-        />
-        <div className="mt-6">
-          <input
-            className="w-full p-2 rounded border"
-            style={{ background: "#ffffff", color: "#333333", borderColor: "#e5e7eb" }}
-            placeholder="Search tasks..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            aria-label="Search tasks"
-          />
-        </div>
-      </aside>
-
-      {/* Main Planner */}
-      <main
-        className="flex-1 flex flex-col h-full relative"
-        style={{ background: "#ffffff", color: "#333333" }}
-      >
-        <div
-          className="flex items-center justify-between p-4 border-b"
-          style={{ background: "#ffffff", color: "#333333", borderColor: "#e5e7eb" }}
-        >
-          <div className="flex items-center gap-2">
+    <div className="w-full">
+      <PageHeader title="Routine Tasks" subtitle="Plan your recurring work" />
+      <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-pink-50 to-purple-100 flex">
+        {/* Sidebar */}
+        <aside className="w-72 p-4 border-r bg-white/80 shadow-xl">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-semibold text-lg text-gray-700">This Month</h2>
             <button
-              onClick={() => handleWeekNav(-1)}
-              aria-label="Previous week"
-              style={{ background: "#f0f0f0", color: "#333333", borderRadius: 4, padding: "2px 8px", border: "1px solid #e5e7eb" }}
+              onClick={handleYearlyToggle}
+              aria-label="Open yearly planner"
+              className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-lg px-2 py-1 border border-purple-200 hover:from-purple-200 hover:to-pink-200 transition"
             >
-              <ChevronLeft />
-            </button>
-            <select
-              value={view}
-              onChange={e => setView(e.target.value)}
-              className="rounded border px-2 py-1 text-sm bg-white text-gray-800 border-gray-300 focus:outline-none"
-              style={{ minWidth: 90 }}
-            >
-              <option value="day">Day</option>
-              <option value="week">Week</option>
-              <option value="month">Month</option>
-              <option value="year">Year</option>
-            </select>
-            <button
-              onClick={() => handleWeekNav(1)}
-              aria-label="Next week"
-              style={{ background: "#f0f0f0", color: "#333333", borderRadius: 4, padding: "2px 8px", border: "1px solid #e5e7eb" }}
-            >
-              <ChevronRight />
+              <CalendarIcon className="w-5 h-5" />
             </button>
           </div>
-          <h2 className="font-medium text-lg">
-            {view === 'week' && (
-              `${weekDates[0].format("MMM D")} – ${weekDates[6].format("MMM D, YYYY")}`
-            )}
-            {view === 'day' && selectedDate.format("dddd, MMM D, YYYY")}
-            {view === 'month' && selectedDate.format("MMMM YYYY")}
-            {view === 'year' && selectedDate.format("YYYY")}
-          </h2>
-        </div>
-        {/* Main View Switcher */}
-        {view === 'week' && (
-          <WeeklyView
-            weekDates={weekDates}
-            tasksByDate={tasksByDate}
-            onDayClick={handleMiniDateClick}
-            onTaskClick={handleTaskClick}
-            onTaskComplete={handleTaskComplete}
-          />
-        )}
-        {view === 'day' && (
-          <WeeklyView
-            weekDates={[selectedDate]}
-            tasksByDate={tasksByDate}
-            onDayClick={handleMiniDateClick}
-            onTaskClick={handleTaskClick}
-            onTaskComplete={handleTaskComplete}
-          />
-        )}
-        {view === 'month' && (
           <MonthTable
             year={selectedDate.year()}
             month={selectedDate.month()}
@@ -348,27 +260,104 @@ const RoutineTasks = () => {
             onPrevMonth={() => handleMonthNav(-1)}
             onNextMonth={() => handleMonthNav(1)}
           />
-        )}
-        {view === 'year' && (
-          <YearlyCalendar
-            year={selectedDate.year()}
-            tasksByDate={tasksByDate}
-            onMonthClick={dateStr => {
-              setSelectedDate(moment(dateStr));
-              setView('month');
-            }}
-          />
-        )}
-        {/* Floating Add Button */}
-        <button
-          className="fixed bottom-8 right-8 rounded-full p-4 shadow-lg"
-          style={{ background: "#4f46e5", color: "#ffffff" }}
-          onClick={() => setShowAddForm(true)}
-          aria-label="Add Task"
-        >
-          <Plus />
-        </button>
-      </main>
+          <div className="mt-6">
+            <input
+              className="w-full p-2 rounded-full border-2 border-transparent focus:border-gradient-to-r focus:from-purple-400 focus:to-pink-400 shadow focus:shadow-lg transition-all duration-300"
+              placeholder="Search tasks..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              aria-label="Search tasks"
+            />
+          </div>
+        </aside>
+
+        {/* Main Planner */}
+        <main className="flex-1 flex flex-col h-full relative bg-gradient-to-br from-white via-blue-50 to-pink-50">
+          <div className="flex items-center justify-between p-4 border-b bg-white/80">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleWeekNav(-1)}
+                aria-label="Previous week"
+                className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-lg px-2 py-1 border border-purple-200 hover:from-purple-200 hover:to-pink-200 transition"
+              >
+                <ChevronLeft />
+              </button>
+              <select
+                value={view}
+                onChange={e => setView(e.target.value)}
+                className="rounded-full border px-3 py-1 text-sm bg-white text-gray-800 border-gray-300 focus:outline-none shadow"
+                style={{ minWidth: 90 }}
+              >
+                <option value="day">Day</option>
+                <option value="week">Week</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+              </select>
+              <button
+                onClick={() => handleWeekNav(1)}
+                aria-label="Next week"
+                className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-lg px-2 py-1 border border-purple-200 hover:from-purple-200 hover:to-pink-200 transition"
+              >
+                <ChevronRight />
+              </button>
+            </div>
+            <h2 className="font-medium text-lg text-gray-700">
+              {view === 'week' && (
+                `${weekDates[0].format("MMM D")} – ${weekDates[6].format("MMM D, YYYY")}`
+              )}
+              {view === 'day' && selectedDate.format("dddd, MMM D, YYYY")}
+              {view === 'month' && selectedDate.format("MMMM YYYY")}
+              {view === 'year' && selectedDate.format("YYYY")}
+            </h2>
+          </div>
+          {/* Main View Switcher */}
+          {view === 'week' && (
+            <WeeklyView
+              weekDates={weekDates}
+              tasksByDate={tasksByDate}
+              onDayClick={handleMiniDateClick}
+              onTaskClick={handleTaskClick}
+              onTaskComplete={handleTaskComplete}
+            />
+          )}
+          {view === 'day' && (
+            <WeeklyView
+              weekDates={[selectedDate]}
+              tasksByDate={tasksByDate}
+              onDayClick={handleMiniDateClick}
+              onTaskClick={handleTaskClick}
+              onTaskComplete={handleTaskComplete}
+            />
+          )}
+          {view === 'month' && (
+            <MonthTable
+              year={selectedDate.year()}
+              month={selectedDate.month()}
+              tasksByDate={tasksByDate}
+              onDayClick={handleMiniDateClick}
+              onPrevMonth={() => handleMonthNav(-1)}
+              onNextMonth={() => handleMonthNav(1)}
+            />
+          )}
+          {view === 'year' && (
+            <YearlyCalendar
+              year={selectedDate.year()}
+              tasksByDate={tasksByDate}
+              onMonthClick={dateStr => {
+                setSelectedDate(moment(dateStr));
+                setView('month');
+              }}
+            />
+          )}
+          {/* Floating Add Button */}
+          <button
+            className="fixed bottom-8 right-8 rounded-full p-4 shadow-lg bg-gradient-to-br from-purple-500 to-pink-400 text-white hover:scale-110 hover:shadow-pink-400/50 transition-all duration-300 ease-in-out"
+            onClick={() => setShowAddForm(true)}
+            aria-label="Add Task"
+          >
+            <Plus />
+          </button>
+        </main>
 
       {/* Modals */}
       {showAddForm && (
@@ -405,6 +394,7 @@ const RoutineTasks = () => {
         onClose={() => setCalendarModalOpen(false)}
       />
       <ToastContainer position="bottom-right" />
+      </div>
     </div>
   );
 };

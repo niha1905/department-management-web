@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import notificationService from '../services/notificationService';
+import notificationService from '../services/notificationService.jsx';
 import { createNote } from '../services/api';
 
 const NotificationTest = () => {

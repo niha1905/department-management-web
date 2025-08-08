@@ -302,11 +302,17 @@ class NotesController:
                 query['in_trash'] = False
             elif view == 'trash':
                 query['in_trash'] = True
+
             if tag and tag != 'all':
                 query['tags'] = tag
             if filter_type and filter_type != 'all':
                 query['type'] = filter_type
-            if filter_created_by:
+
+            # Restrict daily/routine tasks to only show if created_by matches the user (including admin)
+            if filter_type in ['daily task', 'routine task']:
+                if user_email:
+                    query['created_by'] = user_email
+            elif filter_created_by:
                 query['created_by'] = filter_created_by
             if filter_created_start or filter_created_end:
                 date_query = {}
@@ -397,8 +403,11 @@ class NotesController:
     def update_note(self, note_id):
         try:
             data = request.get_json()
-            if not data.get('title') and not data.get('description'):
-                return jsonify({"error": "At least title or description is required for update"}), 400
+            # Allow updating any supported fields; do not require title/description specifically
+            allowed_fields = ['title', 'description', 'color', 'tags', 'deadline', 'type', 'project_id', 'assigned_to', 'completed', 'in_trash']
+            has_allowed_update = any(field in data for field in allowed_fields) if isinstance(data, dict) else False
+            if not has_allowed_update:
+                return jsonify({"error": "No valid update fields provided"}), 400
             
             update_data = {
                 "updated_at": datetime.datetime.now(),

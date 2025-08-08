@@ -603,6 +603,100 @@ export const markMessagesAsRead = async (chatId) => {
   }
 };
 
+// ====================== CHAT FILE UPLOAD APIs ======================
+export const uploadChatFile = async (file, onProgress = null) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('user_email', sessionStorage.getItem('email'));
+    formData.append('user_name', sessionStorage.getItem('name'));
+
+    const response = await fetch(`${API_URL}/api/chat/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to upload file');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
+};
+
+export const sendFileMessage = async (chatId, fileData) => {
+  try {
+    const messageData = {
+      chatId,
+      content: `📎 ${fileData.originalName}`,
+      sender: sessionStorage.getItem('email'),
+      senderName: sessionStorage.getItem('name'),
+      type: 'file',
+      file: {
+        filename: fileData.filename,
+        originalName: fileData.originalName,
+        fileSize: fileData.fileSize,
+        mimeType: fileData.mimeType,
+        url: fileData.url
+      }
+    };
+
+    const response = await fetch(`${API_URL}/api/chat/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(messageData),
+    });
+
+    if (!response.ok) throw new Error('Failed to send file message');
+    const data = await response.json();
+    return data.message;
+  } catch (error) {
+    console.error('Error sending file message:', error);
+    throw error;
+  }
+};
+
+export const downloadChatFile = async (filename) => {
+  try {
+    const response = await fetch(`${API_URL}/api/chat/download/${filename}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) throw new Error('Failed to download file');
+    
+    // Return the response so the component can handle the download
+    return response;
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    throw error;
+  }
+};
+
+// Delete (unsend) a chat message
+export const deleteChatMessage = async (messageId) => {
+  try {
+    const userEmail = sessionStorage.getItem('email');
+    const response = await fetch(`${API_URL}/api/chat/messages/${messageId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_email: userEmail })
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to delete message');
+    }
+    return true;
+  } catch (error) {
+    console.error('Error deleting chat message:', error);
+    throw error;
+  }
+};
+
 // Transcription API calls
 export const saveTranscription = async (data) => {
   try {

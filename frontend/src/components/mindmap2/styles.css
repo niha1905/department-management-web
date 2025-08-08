@@ -32,21 +32,57 @@
   color: white;
 }
 
-/* Gradient backgrounds */
+/* Gradient backgrounds with enhanced vibrancy */
 .gradient-green-blue {
-  background: linear-gradient(135deg, hsl(152, 70%, 65%), hsl(210, 100%, 60%));
+  background: linear-gradient(135deg, hsl(152, 80%, 65%), hsl(210, 100%, 60%));
+  box-shadow: 0 8px 25px -5px rgba(52, 211, 153, 0.3);
 }
 
 .gradient-pink-purple {
-  background: linear-gradient(135deg, hsl(330, 70%, 65%), hsl(270, 85%, 65%));
+  background: linear-gradient(135deg, hsl(330, 85%, 65%), hsl(270, 90%, 65%));
+  box-shadow: 0 8px 25px -5px rgba(244, 114, 182, 0.3);
 }
 
 .gradient-yellow-red {
-  background: linear-gradient(135deg, hsl(48, 95%, 65%), hsl(0, 85%, 65%));
+  background: linear-gradient(135deg, hsl(48, 95%, 65%), hsl(0, 90%, 65%));
+  box-shadow: 0 8px 25px -5px rgba(250, 204, 21, 0.3);
 }
 
 .gradient-teal-cyan {
-  background: linear-gradient(135deg, hsl(172, 75%, 65%), hsl(188, 85%, 65%));
+  background: linear-gradient(135deg, hsl(172, 85%, 65%), hsl(188, 90%, 65%));
+  box-shadow: 0 8px 25px -5px rgba(45, 212, 191, 0.3);
+}
+
+/* Add shine effect */
+.gradient-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  animation: shine 6s infinite;
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  20%, 100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
 }
 
 .gradient-indigo-blue {

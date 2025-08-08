@@ -30,6 +30,7 @@ export default function TaskMindmap() {
   const [modalData, setModalData] = useState(null);
   const [expanded, setExpanded] = useState({ root: true });
   const [loading, setLoading] = useState(true);
+  const [collapsedNodes, setCollapsedNodes] = useState(new Set());
 
   useEffect(() => {
     async function loadData() {
@@ -74,6 +75,15 @@ export default function TaskMindmap() {
 
           const assignedUsers = project.assigned_users || [];
           let personIdx = 0;
+          
+          // Update project node to indicate it has children if there are assigned users
+          if (assignedUsers.length > 0) {
+            const projectNode = nodes.find(n => n.id === projectId);
+            if (projectNode) {
+              projectNode.data.hasChildren = true;
+              projectNode.data.expanded = true;
+            }
+          }
 
           assignedUsers.forEach((userEmail) => {
             const person = people.find((p) => p.email === userEmail || p.name === userEmail);
@@ -97,6 +107,15 @@ export default function TaskMindmap() {
                 note.project_id === project._id &&
                 (note.assigned_to?.includes(userEmail) || note.assigned_to?.includes(personName))
             );
+            
+            // Update person node to indicate it has children if there are notes
+            if (personNotes.length > 0) {
+              const personNode = nodes.find(n => n.id === personId);
+              if (personNode) {
+                personNode.data.hasChildren = true;
+                personNode.data.expanded = true;
+              }
+            }
 
             personNotes.forEach((note, noteIdx) => {
               const noteId = `note-${note._id || note.id}`;
@@ -184,7 +203,29 @@ export default function TaskMindmap() {
 
   const handleToggle = useCallback((nodeId) => {
     setExpanded((prev) => ({ ...prev, [nodeId]: !prev[nodeId] }));
-  }, []);
+    setCollapsedNodes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+    setNodes((nds) => nds.map(n => {
+      if (n.id === nodeId) {
+        return {
+          ...n,
+          data: {
+            ...n.data,
+            expanded: !n.data.expanded,
+            collapsed: !n.data.collapsed
+          }
+        };
+      }
+      return n;
+    }));
+  }, [setNodes]);
 
   const getVisibleNodesAndEdges = () => {
     const visibleNodes = [];
@@ -229,13 +270,21 @@ export default function TaskMindmap() {
       const { id } = event.detail;
       deleteNode(id);
     };
+    const handleToggleNode = (event) => {
+      const { id } = event.detail;
+      handleToggle(id);
+    };
+    
     window.addEventListener('editNode', handleEditNode);
     window.addEventListener('deleteNode', handleDeleteNode);
+    window.addEventListener('toggleNode', handleToggleNode);
+    
     return () => {
       window.removeEventListener('editNode', handleEditNode);
       window.removeEventListener('deleteNode', handleDeleteNode);
+      window.removeEventListener('toggleNode', handleToggleNode);
     };
-  }, [deleteNode]);
+  }, [deleteNode, handleToggle]);
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
@@ -246,28 +295,15 @@ export default function TaskMindmap() {
     ...nodeTypes,
     content: (props) => {
       const hasChildren = edges.some((e) => e.source === props.id);
-      return (
-        <div className="relative">
-          <ContentNode {...props} />
-          {hasChildren && (
-            <button
-              className="absolute -right-4 top-1/2 -translate-y-1/2 bg-white rounded-full border shadow p-1 z-10"
-              style={{ borderColor: '#ddd' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleToggle(props.id);
-              }}
-              title={expanded[props.id] === false ? 'Expand' : 'Collapse'}
-            >
-              {expanded[props.id] === false ? (
-                <ChevronRight className="w-4 h-4 text-blue-500" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-blue-500" />
-              )}
-            </button>
-          )}
-        </div>
-      );
+      // Update the node's data to include hasChildren
+      if (hasChildren !== props.data.hasChildren) {
+        setNodes((nds) => nds.map(n => 
+          n.id === props.id 
+            ? { ...n, data: { ...n.data, hasChildren } }
+            : n
+        ));
+      }
+      return <ContentNode {...props} />;
     },
     root: (props) => {
       const hasChildren = edges.some((e) => e.source === props.id);

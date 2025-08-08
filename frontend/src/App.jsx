@@ -166,7 +166,7 @@ function MainLayout() {
 
   // Renders sidebar, navbar, main content, and modal for creating notes
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-50">
+    <div className="h-screen flex overflow-hidden bg-transparent">
       <Sidebar
         collapsed={sidebarCollapsed}
         toggleSidebar={toggleSidebar}
@@ -175,7 +175,9 @@ function MainLayout() {
         <Navbar toggleSidebar={toggleSidebar} />
         <main className="flex-1 overflow-auto">
           <NotesRefreshContext.Provider value={notesRefreshTrigger}>
-            <Outlet />
+            <div className="p-4 md:p-6 animate-fadeIn">
+              <Outlet />
+            </div>
           </NotesRefreshContext.Provider>
           <NoteFormModal
             isOpen={showNoteFormModal}

@@ -618,14 +618,14 @@ export default function Home({ defaultView = 'active' }) {
 
   // If logged in, show notes dashboard
   return (
-    <div className="flex flex-col h-full bg-gray-50 p-2">
+    <div className="flex flex-col h-full bg-gradient-to-br from-indigo-50/30 via-purple-50/30 to-pink-50/30 p-3">
       {/* Enhanced Filter Bar with Quick Filters */}
-      <div className="bg-white py-2 px-4 rounded-lg shadow-sm mb-6 sticky top-0 z-30 border-b border-gray-200">
-        <div className="flex flex-col gap-1">
+      <div className="bg-white bg-gradient-to-r from-white to-indigo-50/30 py-3 px-5 rounded-xl shadow-md mb-6 sticky top-0 z-30 border border-indigo-100/50 backdrop-blur-sm animate-fadeIn">
+        <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-3">
-              <Filter size={20} className="text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">
+              <Filter size={20} className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500" />
+              <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
                 {selectedView === 'completed' ? 'Completed Notes' : 
                  selectedView === 'trash' ? 'Trash' : 'Notes'}
               </span>
@@ -634,14 +634,14 @@ export default function Home({ defaultView = 'active' }) {
               <div className="flex items-center ml-6 gap-3">
                 {/* Created Timeframe Filter */}
                 <div className="flex items-center gap-1.5">
-                  <Clock size={15} className="text-gray-400" />
+                  <Clock size={15} className="text-indigo-400" />
                   <select 
                     value={filterTimeframe}
                     onChange={(e) => {
                       setFilterTimeframe(e.target.value);
                       setTimeout(applyFilters, 100);
                     }}
-                    className="text-sm border-none focus:ring-0 py-1 px-2 rounded bg-gray-50"
+                    className="text-sm border border-indigo-100 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 py-1 px-2 rounded-lg bg-white shadow-sm transition-all duration-300 hover:shadow-md"
                   >
                     <option value="all">Any time</option>
                     <option value="today">Today</option>

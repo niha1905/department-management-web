@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import './node-styles.css';
 import { 
   FolderOpen, 
   CheckSquare, 
@@ -7,7 +8,9 @@ import {
   MessageSquare,
   Edit3,
   Trash2,
-  CheckCircle
+  CheckCircle,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { NodeData, TaskItem } from '../types';
@@ -67,6 +70,7 @@ export function ContentNode({ data, id }: ContentNodeProps) {
   const [status, setStatus] = useState(data.status || 'Not Completed');
   const [isEditingComment, setIsEditingComment] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const isExpanded = data.expanded !== false;
 
   React.useEffect(() => {
     setLocalTasks(data.tasks || []);
@@ -97,6 +101,19 @@ export function ContentNode({ data, id }: ContentNodeProps) {
       default:
         return <FolderOpen className="w-5 h-5" />;
     }
+  };
+
+  const renderAssignedUsers = () => {
+    if (!data.assignedTo || data.assignedTo.length === 0) return null;
+    return (
+      <div className="mt-2 flex flex-wrap gap-1">
+        {data.assignedTo.map((user, index) => (
+          <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+            {user}
+          </span>
+        ))}
+      </div>
+    );
   };
 
   const getGradient = () => {
@@ -179,9 +196,35 @@ export function ContentNode({ data, id }: ContentNodeProps) {
       />
       {/* Header */}
       <div className="flex items-center justify-between mb-2 w-full">
-        <div className="flex items-center space-x-2 text-white">
-          {getIcon()}
-          <h4 className="font-semibold text-lg">{data.label}</h4>
+        <div className="flex flex-col">
+          <div className="flex items-center space-x-2 text-white">
+            {getIcon()}
+            <h4 className="font-semibold text-lg">{data.label}</h4>
+            {data.hasChildren && (
+              <button
+                className="ml-2 p-1 rounded-full hover:bg-white/10 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.dispatchEvent(new CustomEvent('toggleNode', { detail: { id } }));
+                }}
+                title={isExpanded ? 'Collapse' : 'Expand'}
+              >
+                {isExpanded ? 
+                  <ChevronDown className="w-4 h-4 text-white" /> : 
+                  <ChevronRight className="w-4 h-4 text-white" />
+                }
+              </button>
+            )}
+          </div>
+          {data.assignedTo && data.assignedTo.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {data.assignedTo.map((user, index) => (
+                <span key={index} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-white/20 text-white">
+                  {user}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         {/* Action buttons - shown on hover */}
         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
@@ -284,8 +327,7 @@ export function ContentNode({ data, id }: ContentNodeProps) {
         className="w-3 h-3 bg-white border-2 border-primary"
       />
       <button
-        className="absolute left-1/2 transform -translate-x-1/2 translate-y-3 bg-yellow-400 hover:bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow font-bold border-2 border-white transition-all duration-150"
-        style={{ bottom: -24 }}
+        className="add-node-button bg-yellow-400 hover:bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow font-bold border-2 border-white transition-all duration-150"
         title="Add child node"
         onClick={handleAdd}
       >

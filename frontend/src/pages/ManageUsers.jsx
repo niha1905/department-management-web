@@ -6,6 +6,7 @@ function isAdmin() {
   return sessionStorage.getItem('role') === 'admin';
 }
 import { motion } from "framer-motion";
+import PageHeader from '../components/PageHeader';
 import { UserPlusIcon, UserGroupIcon, TrashIcon, EnvelopeIcon, PhoneIcon, BuildingOfficeIcon } from "@heroicons/react/24/outline";
 
 const DEPARTMENTS = ["Finance", "CAD", "Audit"];
@@ -100,11 +101,12 @@ export default function ManageUsers() {
 
   // Renders UI for creating users and managing (listing/deleting) users
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+    <div className="w-full">
+      <PageHeader title="User Management" subtitle="Create and manage user accounts" />
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-100 p-8"
+        className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mt-6"
       >
         <div className="text-center mb-8">
           <motion.div

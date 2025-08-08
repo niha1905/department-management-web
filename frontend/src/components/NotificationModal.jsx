@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, Clock, Calendar, AlertTriangle, Check, CheckCheck, Trash2 } from 'lucide-react';
-import notificationService from '../services/notificationService';
+import { X, Bell, Clock, Calendar, AlertTriangle, Check, CheckCheck, Trash2, MessageCircle, Volume2, VolumeX } from 'lucide-react';
+import notificationService from '../services/notificationService.jsx';
 
 const NotificationModal = ({ isOpen, onClose, filterToday }) => {
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState('all'); // 'all' or 'unread'
+  const [soundEnabled, setSoundEnabled] = useState(notificationService.soundEnabled);
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -105,6 +106,8 @@ const NotificationModal = ({ isOpen, onClose, filterToday }) => {
         return <Calendar size={20} className="text-blue-500" />;
       case 'ai_note_deadline':
         return <Clock size={20} className="text-purple-500" />;
+      case 'chat_message':
+        return <MessageCircle size={20} className="text-green-500" />;
       default:
         return <Bell size={20} className="text-gray-500" />;
     }
@@ -115,9 +118,28 @@ const NotificationModal = ({ isOpen, onClose, filterToday }) => {
       if (notification.priority) {
         return 'bg-amber-50 border-amber-200';
       }
+      if (notification.type === 'chat_message') {
+        return 'bg-green-50 border-green-200';
+      }
       return 'bg-blue-50 border-blue-200';
     }
     return 'bg-white border-gray-200';
+  };
+
+  const toggleSound = () => {
+    const newSoundState = notificationService.toggleSound();
+    setSoundEnabled(newSoundState);
+  };
+
+  const handleNotificationClick = (notification) => {
+    if (notification.type === 'chat_message') {
+      // Open the specific chat
+      notificationService.openChat(notification.chatId);
+      onClose(); // Close the notification modal
+    } else {
+      // For other types, just mark as read
+      handleMarkAsRead(notification.id);
+    }
   };
 
   return (
@@ -128,13 +150,13 @@ const NotificationModal = ({ isOpen, onClose, filterToday }) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -20 }}
           ref={modalRef}
-          className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] flex flex-col overflow-hidden"
+          className="bg-[var(--gm-white)] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.12)] border border-[var(--color-border)] max-w-md w-full max-h-[80vh] flex flex-col overflow-hidden"
         >
           {/* Header */}
-          <div className="p-4 border-b border-gray-200 bg-white">
+          <div className="p-4 border-b border-[var(--color-border)] bg-[var(--gm-white)]">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <Bell size={20} className="text-gray-700" />
+                <Bell size={20} className="text-[var(--gm-aqua)]" />
                 <h2 className="text-lg font-semibold text-gray-800">Notifications</h2>
                 {unreadCount > 0 && (
                   <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
@@ -142,12 +164,25 @@ const NotificationModal = ({ isOpen, onClose, filterToday }) => {
                   </span>
                 )}
               </div>
-              <button
-                onClick={onClose}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X size={18} className="text-gray-500" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleSound}
+                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                  title={soundEnabled ? 'Disable notification sound' : 'Enable notification sound'}
+                >
+                  {soundEnabled ? (
+                    <Volume2 size={18} className="text-emerald-600" />
+                  ) : (
+                    <VolumeX size={18} className="text-gray-500" />
+                  )}
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={18} className="text-gray-500" />
+                </button>
+              </div>
             </div>
 
             {/* Tabs */}
@@ -177,12 +212,12 @@ const NotificationModal = ({ isOpen, onClose, filterToday }) => {
 
           {/* Actions */}
           {notifications.length > 0 && (
-            <div className="px-4 py-2 border-b border-gray-100 bg-gray-50">
+            <div className="px-4 py-2 border-b border-[var(--color-border)] bg-gray-50">
               <div className="flex gap-2">
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllAsRead}
-                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
+                    className="flex items-center gap-1 text-xs text-[var(--gm-aqua)] hover:opacity-80 font-medium"
                   >
                     <CheckCheck size={14} />
                     Mark all read
@@ -222,7 +257,7 @@ const NotificationModal = ({ isOpen, onClose, filterToday }) => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${getNotificationBgColor(notification)}`}
-                    onClick={() => handleMarkAsRead(notification.id)}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex gap-3">
                       <div className="flex-shrink-0 mt-1">
@@ -235,11 +270,11 @@ const NotificationModal = ({ isOpen, onClose, filterToday }) => {
                             {notification.title}
                           </h4>
                           {!notification.read && (
-                            <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                    <div className="w-2 h-2 bg-[var(--gm-aqua)] rounded-full flex-shrink-0 mt-2"></div>
                           )}
                         </div>
                         
-                        <p className="text-sm text-gray-700 mt-1 line-clamp-2">
+                <p className="text-sm text-gray-700 mt-1 line-clamp-2">
                           {notification.message}
                         </p>
                         
@@ -256,10 +291,13 @@ const NotificationModal = ({ isOpen, onClose, filterToday }) => {
                           
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             notification.type === 'note_deadline' 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : 'bg-purple-100 text-purple-800'
+                      ? 'bg-[var(--gm-aqua)]/15 text-[var(--gm-aqua)]' 
+                              : notification.type === 'ai_note_deadline'
+                      ? 'bg-gray-100 text-gray-800'
+                      : 'bg-green-100 text-green-800'
                           }`}>
-                            {notification.type === 'note_deadline' ? 'Note' : 'AI Note'}
+                            {notification.type === 'note_deadline' ? 'Note' : 
+                             notification.type === 'ai_note_deadline' ? 'AI Note' : 'Chat'}
                           </span>
                         </div>
 

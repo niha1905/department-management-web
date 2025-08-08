@@ -161,18 +161,13 @@ const NoteDetailModal = ({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           ref={modalRef}
-          className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex"
+          className="bg-[var(--gm-white)] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.12)] border border-[var(--color-border)] max-w-6xl w-full max-h-[90vh] flex"
         >
           {/* Note header */}
-          <div
-            className={`p-6 w-1/2 rounded-l-lg ${colorMap[note.color || "blue"].replace(
-              "text-",
-              "border-"
-            )}`}
-          >
+          <div className="p-6 w-1/2 rounded-l-2xl bg-[var(--gm-light)] border-r border-[var(--color-border)]">
             <div className="flex justify-between items-start mb-5">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-800">
+                <h2 className="text-2xl font-semibold text-slate-900">
                   {note.title}
                 </h2>
                 <div className="flex gap-2 mt-1.5">
@@ -188,7 +183,7 @@ const NoteDetailModal = ({
                     </span>
                   )}
                   {isCreator && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[rgba(63,255,224,0.12)] text-[var(--gm-aqua)]">
                       Created by me
                     </span>
                   )}
@@ -205,7 +200,7 @@ const NoteDetailModal = ({
                   </button>
                   
                   {isMenuOpen && (
-                    <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg z-30 border border-gray-100 overflow-hidden">
+                    <div className="absolute right-0 mt-1 w-48 bg-[var(--gm-white)] rounded-2xl shadow-[0_8px_28px_rgba(0,0,0,0.08)] z-30 border border-[var(--color-border)] overflow-hidden">
                       <ul className="py-1 text-sm">
                         {canEdit && (
                           <li>
@@ -231,7 +226,7 @@ const NoteDetailModal = ({
                             }}
                             className="flex items-center w-full px-4 py-2.5 text-gray-700 hover:bg-gray-50"
                           >
-                            <Clock size={16} className="mr-2.5 text-indigo-500" />
+                              <Clock size={16} className="mr-2.5 text-[var(--gm-aqua)]" />
                             Version History
                           </button>
                         </li>
@@ -325,7 +320,7 @@ const NoteDetailModal = ({
                   <User size={16} className="mr-2" />
                   <span>
                     <span className="font-medium">Created by:</span> {note.created_by_name || note.created_by}
-                    {isCreator && <span className="ml-2 text-blue-500 font-medium">(You)</span>}
+                    {isCreator && <span className="ml-2 text-[var(--gm-aqua)] font-medium">(You)</span>}
                   </span>
                 </div>
               )}
@@ -348,9 +343,7 @@ const NoteDetailModal = ({
                     note.tags.map((tag, idx) => (
                       <span
                         key={tag + '-' + idx}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                          colorMap[note.color || "blue"]
-                        } bg-opacity-10`}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium bg-[rgba(63,255,224,0.12)] text-[var(--gm-aqua)]`}
                       >
                         {tag}
                       </span>
@@ -384,12 +377,12 @@ const NoteDetailModal = ({
           {/* Right panel - Comments or Version History */}
           <div className="flex-1 overflow-y-auto p-6 w-1/2">
             {/* Toggle tabs for Comments/History */}
-            <div className="flex border-b border-gray-200 mb-4">
+            <div className="flex border-b border-[var(--color-border)] mb-4">
               <button 
                 onClick={() => setActiveTab("comments")}
                 className={`flex items-center py-2 px-4 ${
                   activeTab === "comments" 
-                    ? "border-b-2 border-blue-600 text-blue-600 font-medium" 
+                    ? "border-b-2 border-[var(--gm-aqua)] text-[var(--gm-aqua)] font-medium" 
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -400,7 +393,7 @@ const NoteDetailModal = ({
                 onClick={() => setActiveTab("versions")}
                 className={`flex items-center py-2 px-4 ${
                   activeTab === "versions" 
-                    ? "border-b-2 border-blue-600 text-blue-600 font-medium" 
+                    ? "border-b-2 border-[var(--gm-aqua)] text-[var(--gm-aqua)] font-medium" 
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -497,8 +490,8 @@ const NoteDetailModal = ({
             {activeTab === "versions" && (
               <div className="h-full">
                 {isLoadingVersions ? (
-                  <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                    <div className="text-center py-12">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--gm-aqua)]"></div>
                     <p className="mt-4 text-sm text-gray-500">Loading version history...</p>
                   </div>
                 ) : versions.length > 0 ? (
@@ -508,7 +501,7 @@ const NoteDetailModal = ({
                         key={version.version_id || index}
                         className={`p-4 rounded-md ${
                           version.is_current 
-                            ? 'bg-blue-50 border border-blue-100' 
+                              ? 'bg-[rgba(63,255,224,0.12)] border border-[rgba(63,255,224,0.25)]' 
                             : 'bg-white border border-gray-200 hover:bg-gray-50'
                         }`}
                       >
@@ -516,7 +509,7 @@ const NoteDetailModal = ({
                           <div>
                             <p className="font-medium text-gray-800">
                               {version.editor_name || version.editor_email || 'Unknown'}
-                              {version.is_current && <span className="ml-2 text-blue-600">(Current)</span>}
+                                {version.is_current && <span className="ml-2 text-[var(--gm-aqua)]">(Current)</span>}
                             </p>
                             <p className="text-sm text-gray-500">{formatDate(version.timestamp)}</p>
                             
@@ -526,12 +519,12 @@ const NoteDetailModal = ({
                             
                             <div className="mt-3 bg-white/50 p-3 rounded-md border border-gray-100">
                               <p className="text-sm font-medium text-gray-700">
-                                <span className="text-blue-700">Title:</span> {version.title}
+                                  <span className="text-[var(--gm-aqua)]">Title:</span> {version.title}
                               </p>
                               {version.description && (
                                 <div className="mt-2">
                                   <p className="text-sm font-medium text-gray-700 mb-1">
-                                    <span className="text-blue-700">Description:</span>
+                                      <span className="text-[var(--gm-aqua)]">Description:</span>
                                   </p>
                                   <p className="text-sm text-gray-600 line-clamp-3">
                                     {version.description}
@@ -544,9 +537,7 @@ const NoteDetailModal = ({
                                   {version.tags.map((tag, i) => (
                                     <span
                                       key={i}
-                                      className={`px-2 py-0.5 text-xs rounded-full ${
-                                        colorMap[version.color || "blue"]
-                                      }`}
+                                        className={`px-2 py-0.5 text-xs rounded-full bg-[rgba(63,255,224,0.12)] text-[var(--gm-aqua)]`}
                                     >
                                       {tag}
                                     </span>

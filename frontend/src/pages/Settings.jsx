@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { updatePassword } from "../services/api";
 import { motion } from "framer-motion";
 import { UserCircleIcon, BellIcon, ShieldCheckIcon, KeyIcon } from "@heroicons/react/24/outline";
+import PageHeader from '../components/PageHeader';
 
 export default function Settings() {
   const [section, setSection] = useState("account");
@@ -44,38 +45,39 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="w-full">
+      <PageHeader title="Settings" subtitle="Manage your account preferences" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-4xl mx-auto"
+        className="max-w-4xl mx-auto mt-6"
       >
         <div className="text-center mb-8">
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-100/50 border border-indigo-200/50"
           >
-            <UserCircleIcon className="w-8 h-8 text-blue-600" />
+            <UserCircleIcon className="w-8 h-8 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600" />
           </motion.div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Settings</h1>
-          <p className="text-gray-600">Manage your account preferences</p>
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 mb-2">Settings</h1>
+          <p className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-purple-700 font-medium">Manage your account preferences</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex space-x-4 mb-8 border-b">
+        <div className="bg-gradient-to-br from-white to-indigo-50/30 rounded-xl shadow-md border border-indigo-100/50 p-6 animate-fadeIn hover:shadow-lg hover:shadow-indigo-200/30 transition-all duration-300">
+          <div className="flex space-x-4 mb-8 border-b border-indigo-100/50">
             <motion.button
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              className={`flex items-center px-6 py-3 font-medium rounded-t-lg transition-colors ${
+              className={`flex items-center px-6 py-3 font-medium rounded-t-lg transition-all duration-300 ${
                 section === "account" 
-                  ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600" 
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 border-b-2 border-indigo-500 shadow-sm" 
+                  : "text-gray-600 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 hover:text-indigo-600"
               }`}
               onClick={() => setSection("account")}
             >
-              <UserCircleIcon className="w-5 h-5 mr-2" />
+              <UserCircleIcon className={`w-5 h-5 mr-2 ${section === "account" ? "text-indigo-500" : "text-gray-500"}`} />
               Account
             </motion.button>
             <motion.button

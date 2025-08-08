@@ -1,22 +1,37 @@
 import React, { useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { 
-  FolderOpen, 
-  CheckSquare, 
-  AlertCircle, 
+import {
+  FolderOpen,
+  CheckSquare,
+  AlertCircle,
   MessageSquare,
   Edit3,
   Trash2,
   CheckCircle,
-  MoreVertical,
-  Save,
-  X
+  Check,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Save
 } from 'lucide-react';
-import { Button } from '../../ui/button'; 
+import { Button } from '../../ui/button';
 import { NodeData, TaskItem } from '../types';
 import { updateNote } from '../../../services/api';
-import { deleteNote } from '../../../services/api';
 
+interface ContentNodeProps {
+  data: NodeData;
+  id: string;
+}
+
+const gradients = [
+  'gradient-green-blue',
+  'gradient-pink-purple',
+  'gradient-yellow-red',
+  'gradient-teal-cyan',
+  'gradient-indigo-blue'
+];
+
+function ContentNode({ data, id }: ContentNodeProps) {
   // Edit node in backend
   const handleEditNode = async (nodeId: string, updatedData: Record<string, any>) => {
     // Only send fields that are filled in the form
@@ -40,7 +55,7 @@ import { deleteNote } from '../../../services/api';
   };
 
   // Delete node in backend
-  const handleDeleteNode = async (nodeId) => {
+  const handleDeleteNode = async (nodeId: string) => {
     try {
       await fetch(`/api/real_estate_mindmap/delete_child/${nodeId}`, {
         method: 'DELETE',
@@ -50,20 +65,6 @@ import { deleteNote } from '../../../services/api';
       // Optionally show error
     }
   };
-interface ContentNodeProps {
-  data: NodeData;
-  id: string;
-}
-
-const gradients = [
-  'gradient-green-blue',
-  'gradient-pink-purple', 
-  'gradient-yellow-red',
-  'gradient-teal-cyan',
-  'gradient-indigo-blue'
-];
-
-export function ContentNode({ data, id }: ContentNodeProps) {
   const [localTasks, setLocalTasks] = React.useState(data.tasks || []);
   const [showDesc, setShowDesc] = useState(false);
   const [comment, setComment] = useState(data.comment || '');
@@ -73,6 +74,7 @@ export function ContentNode({ data, id }: ContentNodeProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(data.label);
   const [showActions, setShowActions] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   React.useEffect(() => {
     setLocalTasks(data.tasks || []);
@@ -136,6 +138,14 @@ export function ContentNode({ data, id }: ContentNodeProps) {
     setIsSaving(true);
     try {
       await updateNote(data.noteId, { completed: newStatus === 'Completed' });
+      // If this is a daily task and status is completed, erase the node
+      if (
+        newStatus === 'Completed' &&
+        typeof data.label === 'string' &&
+        data.label.trim().toLowerCase() === 'daily work'
+      ) {
+        window.dispatchEvent(new CustomEvent('deleteNode', { detail: { id } }));
+      }
     } catch {}
     setIsSaving(false);
   };
@@ -208,7 +218,7 @@ export function ContentNode({ data, id }: ContentNodeProps) {
 
   return (
     <div
-      className={`mindmap-node ${getGradient()} relative p-6 min-w-64 max-w-80 rounded-2xl border-2 border-white/20 shadow-xl group flex flex-col items-center transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:border-white/40 animate-fadeIn`}
+      className={`mindmap-node ${getGradient()} relative p-6 min-w-64 max-w-80 rounded-2xl border-2 border-white/20 shadow-xl group flex flex-col items-center transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:border-white/40 animate-fadeIn ${collapsed ? 'collapsed' : ''}`}
       onMouseEnter={() => {
         data.nodeType === 'task' && setShowDesc(true);
         setShowActions(true);
@@ -225,8 +235,33 @@ export function ContentNode({ data, id }: ContentNodeProps) {
       />
       {/* Header */}
       <div className="flex items-center justify-between mb-3 w-full">
+        {/* Toggle button always visible, left-aligned */}
+        <button
+          onClick={() => setCollapsed((prev) => !prev)}
+          className="p-1 mr-2 text-white bg-white/10 border border-white/30 hover:bg-white/20 rounded transition-colors focus:outline-none min-w-[32px] min-h-[32px] flex items-center justify-center"
+          title={collapsed ? 'Expand node' : 'Collapse node'}
+        >
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
         <div className="flex items-center space-x-2 text-white flex-1">
           {getIcon()}
+          {data.hasChildren && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('toggleNode', { detail: { id } }));
+                setCollapsed(!collapsed);
+              }}
+              className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-200 mr-2"
+              title={collapsed ? 'Expand' : 'Collapse'}
+            >
+              {collapsed ? (
+                <ChevronRight className="w-4 h-4 text-white" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-white" />
+              )}
+            </button>
+          )}
           {isEditingTitle ? (
             <div className="flex items-center space-x-2 flex-1">
               <input
@@ -234,6 +269,10 @@ export function ContentNode({ data, id }: ContentNodeProps) {
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
                 className="bg-white/20 text-white placeholder-white/70 rounded px-2 py-1 text-sm flex-1 border border-white/30 focus:outline-none focus:border-white/50"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleTitleSave();
+                  if (e.key === 'Escape') handleTitleCancel();
+                }}
                 placeholder="Enter title..."
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
@@ -290,115 +329,116 @@ export function ContentNode({ data, id }: ContentNodeProps) {
           </Button>
         </div>
       </div>
-      {/* Content */}
-      <div className="text-white w-full">
-        {data.nodeType === 'task' && (
-          <>
-            {/* Description tooltip/modal on hover */}
-            {showDesc && data?.description && (
-              <div className="absolute left-1/2 top-0 z-50 -translate-x-1/2 -translate-y-full bg-gray-900 bg-opacity-95 text-white text-sm rounded-lg px-4 py-3 shadow-2xl max-w-xs whitespace-pre-line border border-gray-700">
-                {data.description}
-              </div>
-            )}
-            {/* Status dropdown */}
-            <div className="flex items-center gap-2 mt-3 mb-3">
-              <label className="text-xs font-medium">Status:</label>
-              <select
-                className="text-black rounded px-2 py-1 text-xs border border-gray-300 focus:outline-none focus:border-blue-500"
-                value={status}
-                onChange={handleStatusChange}
-                disabled={isSaving}
-                aria-label="Status"
-                title="Status"
-              >
-                <option value="Not Completed">🔄 Not Completed</option>
-                <option value="Completed">✅ Completed</option>
-              </select>
-            </div>
-            {/* Comment section */}
-            <div className="mt-3">
-              {isEditingComment ? (
-                <div className="space-y-2">
-                  <textarea
-                    className="text-black rounded px-2 py-1 text-xs w-full border border-gray-300 focus:outline-none focus:border-blue-500 resize-none"
-                    value={comment}
-                    onChange={e => setComment(e.target.value)}
-                    disabled={isSaving}
-                    placeholder="Enter your comment..."
-                    title="Comment input"
-                    rows={2}
-                  />
-                  <div className="flex gap-1">
-                    <Button 
-                      size="sm" 
-                      onClick={handleCommentSave} 
-                      disabled={isSaving}
-                      className="text-xs px-2 py-1"
-                    >
-                      Save
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={() => setIsEditingComment(false)} 
-                      disabled={isSaving}
-                      className="text-xs px-2 py-1"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="text-xs bg-white/10 rounded px-2 py-1 min-h-[20px]">
-                    {comment || 'No comment'}
-                  </div>
-                  <Button 
-                    size="sm" 
-                    onClick={() => setIsEditingComment(true)} 
-                    disabled={isSaving}
-                    className="text-xs px-2 py-1 bg-white/20 hover:bg-white/30"
-                  >
-                    {comment ? 'Edit Comment' : 'Add Comment'}
-                  </Button>
+      {/* Content (collapsible) */}
+      {!collapsed && (
+        <div className="text-white w-full">
+          {data.nodeType === 'task' && (
+            <>
+              {/* Description tooltip/modal on hover */}
+              {showDesc && data?.description && (
+                <div className="absolute left-1/2 top-0 z-50 -translate-x-1/2 -translate-y-full bg-gray-900 bg-opacity-95 text-white text-sm rounded-lg px-4 py-3 shadow-2xl max-w-xs whitespace-pre-line border border-gray-700">
+                  {data.description}
                 </div>
               )}
-            </div>
-          </>
-        )}
-        {/* Existing content for other node types */}
-        {data.nodeType !== 'task' && (
-          <>
-            {data.nodeType === 'project' && (
-              <div className="text-sm">
-                <div className="font-medium">Project: {data.label}</div>
-                {data?.description && <div className="text-xs mt-1">{data.description}</div>}
+              {/* Status dropdown */}
+              <div className="flex items-center gap-2 mt-3 mb-3">
+                <label className="text-xs font-medium">Status:</label>
+                <select
+                  className="text-black rounded px-2 py-1 text-xs border border-gray-300 focus:outline-none focus:border-blue-500"
+                  value={status}
+                  onChange={handleStatusChange}
+                  disabled={isSaving}
+                  aria-label="Status"
+                  title="Status"
+                >
+                  <option value="Not Completed">🔄 Not Completed</option>
+                  <option value="Completed">✅ Completed</option>
+                </select>
               </div>
-            )}
-            {data.nodeType === 'status' && data.status && (
-              <div className="text-sm">
-                <span className="font-medium">Status:</span> {data.status}
+              {/* Comment section */}
+              <div className="mt-3">
+                {isEditingComment ? (
+                  <div className="space-y-2">
+                    <textarea
+                      className="text-black rounded px-2 py-1 text-xs w-full border border-gray-300 focus:outline-none focus:border-blue-500 resize-none"
+                      value={comment}
+                      onChange={e => setComment(e.target.value)}
+                      disabled={isSaving}
+                      placeholder="Enter your comment..."
+                      title="Comment input"
+                      rows={2}
+                    />
+                    <div className="flex gap-1">
+                      <Button 
+                        size="sm" 
+                        onClick={handleCommentSave} 
+                        disabled={isSaving}
+                        className="text-xs px-2 py-1"
+                      >
+                        Save
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => setIsEditingComment(false)} 
+                        disabled={isSaving}
+                        className="text-xs px-2 py-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="text-xs bg-white/10 rounded px-2 py-1 min-h-[20px]">
+                      {comment || 'No comment'}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      onClick={() => setIsEditingComment(true)} 
+                      disabled={isSaving}
+                      className="text-xs px-2 py-1 bg-white/20 hover:bg-white/30"
+                    >
+                      {comment ? 'Edit Comment' : 'Add Comment'}
+                    </Button>
+                  </div>
+                )}
               </div>
-            )}
-            {data.nodeType === 'comment' && data.comment && (
-              <div className="text-sm leading-relaxed">
-                {data.comment.length > 100 
-                  ? `${data.comment.substring(0, 100)}...` 
-                  : data.comment
-                }
-              </div>
-            )}
-            {renderTasks()}
-          </>
-        )}
-      </div>
+            </>
+          )}
+          {/* Existing content for other node types */}
+          {data.nodeType !== 'task' && (
+            <>
+              {data.nodeType === 'project' && (
+                <div className="text-sm">
+                  <div className="font-medium">Project: {data.label}</div>
+                  {data?.description && <div className="text-xs mt-1">{data.description}</div>}
+                </div>
+              )}
+              {data.nodeType === 'status' && data.status && (
+                <div className="text-sm">
+                  <span className="font-medium">Status:</span> {data.status}
+                </div>
+              )}
+              {data.nodeType === 'comment' && data.comment && (
+                <div className="text-sm leading-relaxed">
+                  {data.comment.length > 100 
+                    ? `${data.comment.substring(0, 100)}...` 
+                    : data.comment
+                  }
+                </div>
+              )}
+              {renderTasks()}
+            </>
+          )}
+        </div>
+      )}
       <Handle
         type="source"
         position={Position.Bottom}
         className="w-4 h-4 bg-white border-3 border-blue-500 shadow-lg"
       />
       <button
-        className="absolute left-1/2 transform -translate-x-1/2 translate-y-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg font-bold border-3 border-white transition-all duration-200 hover:scale-110 hover:shadow-xl"
-        style={{ bottom: -32 }}
+        className="absolute left-1/2 transform -translate-x-1/2 translate-y-3 -bottom-8 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg font-bold border-3 border-white transition-all duration-200 hover:scale-110 hover:shadow-xl"
         title="Add child node"
         onClick={handleAdd}
       >
@@ -407,3 +447,5 @@ export function ContentNode({ data, id }: ContentNodeProps) {
     </div>
   );
 }
+
+export { ContentNode };

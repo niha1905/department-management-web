@@ -63,6 +63,8 @@ os.makedirs(TEMP_AUDIO_DIR, exist_ok=True)
 
 TEMP_CHAT_AUDIO_DIR = os.path.join(APP_ROOT, 'temp_chataudio')
 os.makedirs(TEMP_CHAT_AUDIO_DIR, exist_ok=True)
+CHAT_UPLOAD_DIR = os.path.join(APP_ROOT, 'chat_uploads')
+os.makedirs(CHAT_UPLOAD_DIR, exist_ok=True)
 
 try:
     mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017')
@@ -248,6 +250,49 @@ def edit_message(message_id):
 @app.route('/api/chat/unread', methods=['GET'])
 def get_unread_count():
     return chat_controller.get_unread_count()
+
+# ====================== CHAT FILE UPLOAD/DOWNLOAD ======================
+@app.route('/api/chat/upload', methods=['POST'])
+def upload_chat_file():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+        filename = secure_filename(file.filename)
+        unique_name = f"{uuid.uuid4().hex}_{filename}"
+        dest_path = os.path.join(CHAT_UPLOAD_DIR, unique_name)
+        file.save(dest_path)
+
+        file_size = os.path.getsize(dest_path)
+        mime_type = file.mimetype or 'application/octet-stream'
+
+        file_doc = {
+            'filename': unique_name,
+            'originalName': filename,
+            'fileSize': file_size,
+            'mimeType': mime_type,
+            'url': f"/api/chat/download/{unique_name}",
+            'uploaded_at': datetime.utcnow(),
+            'uploaded_by': request.form.get('user_email'),
+            'uploaded_by_name': request.form.get('user_name'),
+        }
+        return jsonify(file_doc), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/chat/download/<filename>', methods=['GET'])
+def download_chat_file(filename):
+    try:
+        safe_name = secure_filename(filename)
+        path = os.path.join(CHAT_UPLOAD_DIR, safe_name)
+        if not os.path.exists(path):
+            return jsonify({'error': 'File not found'}), 404
+        return send_file(path, as_attachment=True, download_name=safe_name)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # ====================== AUDIO HANDLING ======================
 @app.route('/upload_audio', methods=['POST'])

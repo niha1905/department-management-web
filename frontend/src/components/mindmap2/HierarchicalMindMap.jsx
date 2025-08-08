@@ -68,13 +68,35 @@ export default function HierarchicalMindMap({ viewType = 'people' }) {
   const reloadMindmapData = useCallback(async () => {
     setLoading(true);
     try {
-      const [projectsRes, peopleRes, notesRes] = await Promise.all([
-        getProjects(),
-        fetchPeople(),
-        fetchNotes({}, 'active'),
-      ]);
-
-      const projects = projectsRes.projects || [];
+      const userRole = sessionStorage.getItem('role');
+      const userEmail = sessionStorage.getItem('email');
+      const userName = sessionStorage.getItem('name');
+      let assignedProjects = [];
+      let projects = [];
+      if (userRole === 'member') {
+        const allProjects = await getProjects();
+        const myProjects = (allProjects.projects || []).filter(p => Array.isArray(p.assigned_users) && p.assigned_users.includes(userName));
+        assignedProjects = myProjects.map(p => p._id);
+        projects = myProjects;
+      } else {
+        const allProjects = await getProjects();
+        projects = allProjects.projects || [];
+      }
+      const peopleRes = await fetchPeople();
+      let notesRes = await fetchNotes({}, 'active');
+      if (userRole === 'member') {
+        notesRes = notesRes.filter(note =>
+          note.created_by === userEmail ||
+          (note.project_id && assignedProjects.includes(note.project_id))
+        );
+      } else {
+        // Admin: see everything except other users' daily/routine notes
+        notesRes = notesRes.filter(note => {
+          const isDailyOrRoutine = note.type === 'daily task' || note.type === 'routine task';
+          const isOthers = note.created_by !== userEmail;
+          return !(isDailyOrRoutine && isOthers);
+        });
+      }
       const people = peopleRes || [];
       const notes = notesRes || [];
 
@@ -141,26 +163,73 @@ export default function HierarchicalMindMap({ viewType = 'people' }) {
   // Handler for project node click to show checklist modal
   const handleNodeClick = useCallback((event, node) => {
     if (node?.type === 'branch' && node?.data?.nodeType === 'project') {
-      fetchNotes({}, 'active').then(notes => {
-        // Show ALL notes for this project (regardless of assigned_to)
-        const projectNotes = notes.filter(
-          note => note.project_id === node.data.projectId ||
-                  note.project === node.data.projectId ||
-                  note.project === node.data.label // fallback support for old notes
-        );
-        setChecklistNotes(projectNotes);
-        setSelectedProject(node.data.label);
-        setChecklistModalOpen(true);
-        // Initialize status for each note
-        const initialStatus = {};
-        projectNotes.forEach(note => {
-          initialStatus[note._id || note.id] = note.completed ? 'Completed' : 'Ongoing';
-        });
-        setNotesStatus(initialStatus);
-      }).catch(error => {
-        console.error('Error fetching notes:', error);
-        // Add error handling UI if needed
-      });
+      const userRole = sessionStorage.getItem('role');
+      const userEmail = sessionStorage.getItem('email');
+      const userName = sessionStorage.getItem('name');
+      let assignedProjects = [];
+      let fetchProjects = [];
+      const getNotesAndProjects = () => {
+        if (userRole === 'member') {
+          getProjects().then(allProjects => {
+            const myProjects = (allProjects.projects || []).filter(p => Array.isArray(p.assigned_users) && p.assigned_users.includes(userName));
+            assignedProjects = myProjects.map(p => p._id);
+            fetchProjects = myProjects;
+            fetchNotes({}, 'active').then(notes => {
+              let filteredNotes = notes.filter(note =>
+                note.created_by === userEmail ||
+                (note.project_id && assignedProjects.includes(note.project_id))
+              );
+              // Show ALL notes for this project (regardless of assigned_to)
+              const projectNotes = filteredNotes.filter(
+                note => note.project_id === node.data.projectId ||
+                        note.project === node.data.projectId ||
+                        note.project === node.data.label // fallback support for old notes
+              );
+              setChecklistNotes(projectNotes);
+              setSelectedProject(node.data.label);
+              setChecklistModalOpen(true);
+              // Initialize status for each note
+              const initialStatus = {};
+              projectNotes.forEach(note => {
+                initialStatus[note._id || note.id] = note.completed ? 'Completed' : 'Ongoing';
+              });
+              setNotesStatus(initialStatus);
+            }).catch(error => {
+              console.error('Error fetching notes:', error);
+            });
+          });
+        } else {
+          getProjects().then(allProjects => {
+            fetchProjects = allProjects.projects || [];
+            fetchNotes({}, 'active').then(notes => {
+              // Admin: see everything except other users' daily/routine notes
+              let filteredNotes = notes.filter(note => {
+                const isDailyOrRoutine = note.type === 'daily task' || note.type === 'routine task';
+                const isOthers = note.created_by !== userEmail;
+                return !(isDailyOrRoutine && isOthers);
+              });
+              // Show ALL notes for this project (regardless of assigned_to)
+              const projectNotes = filteredNotes.filter(
+                note => note.project_id === node.data.projectId ||
+                        note.project === node.data.projectId ||
+                        note.project === node.data.label // fallback support for old notes
+              );
+              setChecklistNotes(projectNotes);
+              setSelectedProject(node.data.label);
+              setChecklistModalOpen(true);
+              // Initialize status for each note
+              const initialStatus = {};
+              projectNotes.forEach(note => {
+                initialStatus[note._id || note.id] = note.completed ? 'Completed' : 'Ongoing';
+              });
+              setNotesStatus(initialStatus);
+            }).catch(error => {
+              console.error('Error fetching notes:', error);
+            });
+          });
+        }
+      };
+      getNotesAndProjects();
     } else if (node?.type === 'content' && node?.data?.nodeType === 'note') {
       // Handle individual note node click
       setIndividualNodeModal({
@@ -208,6 +277,34 @@ export default function HierarchicalMindMap({ viewType = 'people' }) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [expanded, setExpanded] = useState({ root: true });
   const [loading, setLoading] = useState(true);
+
+  // Handle node expansion/collapse
+  const handleNodeExpand = useCallback((nodeId) => {
+    setExpanded((prev) => ({ ...prev, [nodeId]: !prev[nodeId] }));
+    setNodes((nds) => nds.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            collapsed: !node.data.collapsed
+          }
+        };
+      }
+      return node;
+    }));
+  }, [setNodes]);
+
+  // Listen for toggle events from node components
+  useEffect(() => {
+    const handleToggleNode = (event) => {
+      const { id } = event.detail || {};
+      if (!id) return;
+      handleNodeExpand(id);
+    };
+    window.addEventListener('toggleNode', handleToggleNode);
+    return () => window.removeEventListener('toggleNode', handleToggleNode);
+  }, [handleNodeExpand]);
 
   // Function to handle connecting a note to a node
   const onConnect = useCallback((params) => {
@@ -533,6 +630,68 @@ export default function HierarchicalMindMap({ viewType = 'people' }) {
   // Ensure visibleNodes and visibleEdges are defined with defaults
   const { visibleNodes = [], visibleEdges = [] } = getVisibleNodesAndEdges();
 
+  // Wrap node types to render expand/collapse buttons and set hasChildren
+  const customNodeTypes = {
+    ...nodeTypes,
+    content: (props) => {
+      const hasChildren = edges.some((e) => e.source === props.id);
+      if (hasChildren !== props.data.hasChildren) {
+        setNodes((nds) => nds.map((n) => (n.id === props.id ? { ...n, data: { ...n.data, hasChildren } } : n)));
+      }
+      return <ContentNode {...props} />;
+    },
+    root: (props) => {
+      const hasChildren = edges.some((e) => e.source === props.id);
+      return (
+        <div className="relative">
+          <RootNode {...props} />
+          {hasChildren && (
+            <button
+              className="absolute -right-4 top-1/2 -translate-y-1/2 bg-white rounded-full border shadow p-1 z-10"
+              style={{ borderColor: '#ddd' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((prev) => ({ ...prev, [props.id]: !prev[props.id] }));
+              }}
+              title={expanded[props.id] === false ? 'Expand' : 'Collapse'}
+            >
+              {expanded[props.id] === false ? (
+                <ChevronRight className="w-4 h-4 text-blue-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-blue-500" />
+              )}
+            </button>
+          )}
+        </div>
+      );
+    },
+    branch: (props) => {
+      const hasChildren = edges.some((e) => e.source === props.id);
+      return (
+        <div className="relative">
+          <BranchNode {...props} />
+          {hasChildren && (
+            <button
+              className="absolute -right-4 top-1/2 -translate-y-1/2 bg-white rounded-full border shadow p-1 z-10"
+              style={{ borderColor: '#ddd' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((prev) => ({ ...prev, [props.id]: !prev[props.id] }));
+              }}
+              title={expanded[props.id] === false ? 'Expand' : 'Collapse'}
+            >
+              {expanded[props.id] === false ? (
+                <ChevronRight className="w-4 h-4 text-blue-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-blue-500" />
+              )}
+            </button>
+          )}
+        </div>
+      );
+    },
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -593,7 +752,7 @@ export default function HierarchicalMindMap({ viewType = 'people' }) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        nodeTypes={nodeTypes}
+        nodeTypes={customNodeTypes}
         fitView
         minZoom={0.2}
         maxZoom={2.0}

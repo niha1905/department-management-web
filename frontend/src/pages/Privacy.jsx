@@ -1,27 +1,30 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import PageHeader from '../components/PageHeader';
 import { ShieldCheckIcon, LockClosedIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 
 export default function Privacy() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="w-full">
+      <PageHeader title="Privacy" subtitle="Your privacy is our top priority" />
+      <div className="max-w-4xl mx-auto px-4 pt-6 pb-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-4xl mx-auto"
+        className=""
       >
         <div className="text-center mb-8">
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-100/50 border border-indigo-200/50"
           >
-            <ShieldCheckIcon className="w-8 h-8 text-blue-600" />
+            <ShieldCheckIcon className="w-8 h-8 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600" />
           </motion.div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Privacy Policy</h1>
-          <p className="text-gray-600">Your privacy is our top priority</p>
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 mb-2">Privacy Policy</h1>
+          <p className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-purple-700 font-medium">Your privacy is our top priority</p>
         </div>
 
         <div className="grid gap-6">
@@ -29,15 +32,15 @@ export default function Privacy() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100"
+            className="bg-gradient-to-br from-white to-indigo-50/30 rounded-xl shadow-md hover:shadow-lg hover:shadow-indigo-200/30 transition-all duration-300 p-6 border border-indigo-100/50 animate-fadeIn"
           >
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <LockClosedIcon className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg shadow-md shadow-indigo-100/30 border border-indigo-200/30">
+                <LockClosedIcon className="w-6 h-6 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">Data Protection</h2>
-                <p className="text-gray-600">
+                <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-2">Data Protection</h2>
+                <p className="text-indigo-700/80">
                   We implement robust security measures to protect your personal information. All data is encrypted
                   using industry-standard protocols and stored securely on our servers.
                 </p>
@@ -95,6 +98,7 @@ export default function Privacy() {
           Last updated: {new Date().toLocaleDateString()}
         </motion.div>
       </motion.div>
+      </div>
     </div>
   );
 }

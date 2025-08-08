@@ -27,7 +27,7 @@ export function Tabs({ defaultValue, className, children, onValueChange, ...prop
 // TabsList component (container for tab triggers)
 export function TabsList({ className, children, ...props }) {
   return (
-    <div className={`flex border-b border-gray-200 ${className}`} {...props}>
+    <div className={`flex border-b border-gray-200 bg-white/5 backdrop-blur-sm rounded-t-xl p-1 shadow-lg ${className}`} {...props}>
       {children}
     </div>
   );
@@ -40,15 +40,18 @@ export function TabsTrigger({ value, className, children, ...props }) {
 
   return (
     <button
-      className={`px-4 py-2 font-medium text-sm transition-colors relative 
+      className={`px-5 py-2.5 font-medium text-sm transition-all duration-300 relative 
         ${isActive 
-          ? 'text-blue-600 border-b-2 border-blue-600' 
-          : 'text-gray-500 hover:text-gray-700'} 
+          ? 'text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-t-lg shadow-lg' 
+          : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100/80 rounded-t-lg'} 
         ${className}`}
       onClick={() => setActiveTab(value)}
       {...props}
     >
       {children}
+      {isActive && (
+        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 animate-pulse"></span>
+      )}
     </button>
   );
 }

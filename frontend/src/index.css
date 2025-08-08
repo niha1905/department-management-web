@@ -1,1 +1,132 @@
 @import "tailwindcss";
+
+/* Design system tokens via CSS variables */
+@theme {
+  --font-sans: "Inter", "Poppins", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --radius: 1rem; /* 16px default */
+
+  /* Brand palette */
+  --gm-dark: #030313; /* primary background */
+  --gm-yellow: #F3FE39; /* accent yellow - primary CTAs */
+  --gm-aqua: #3FFFE0; /* highlight aqua - secondary CTAs */
+  --gm-light: #F9F9F9; /* light background */
+  --gm-white: #FFFFFF; /* pure white */
+
+  /* Semantic tokens mapped to brand */
+  --color-background: var(--gm-light);
+  --color-foreground: #0a0a0a;
+
+  --color-muted: #f1f1f1;
+  --color-muted-foreground: #666b73;
+
+  --color-card: var(--gm-white);
+  --color-card-foreground: var(--color-foreground);
+
+  --color-border: #e6e6ea;
+  --color-input: var(--color-border);
+  --color-ring: var(--gm-aqua);
+
+  --color-primary: var(--gm-yellow);
+  --color-primary-foreground: #1a1a1a;
+
+  --color-secondary: var(--gm-aqua);
+  --color-secondary-foreground: #05343a;
+
+  --color-accent: var(--gm-aqua);
+  --color-accent-foreground: #05343a;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+}
+
+:root {
+  --gradient-from: #030313;
+  --gradient-to: #0b0b2a;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+  background-color: var(--gm-light);
+}
+
+/* High-contrast dark sections */
+.gm-dark-section {
+  background-color: var(--gm-dark);
+  color: var(--gm-white);
+}
+
+/* Reusable surface styles */
+.glass {
+  @apply backdrop-blur supports-[backdrop-filter]:bg-white/60;
+  background-color: rgba(255,255,255,0.8);
+}
+
+.surface {
+  background-color: var(--gm-white);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border-radius: 1rem;
+}
+
+/* Form focus */
+input,
+select,
+textarea {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  --tw-ring-offset-color: var(--gm-white);
+}
+
+/* Buttons helpers for custom classes if needed */
+.btn-primary {
+  background-color: var(--gm-yellow);
+  color: #1a1a1a;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  transition: filter 120ms ease, transform 120ms ease;
+}
+.btn-primary:hover { filter: brightness(0.92); }
+
+.btn-secondary {
+  background-color: var(--gm-aqua);
+  color: #05343a;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  transition: filter 120ms ease, transform 120ms ease;
+}
+.btn-secondary:hover { filter: brightness(1.08); }
+
+/* Animations */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(6px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-fadeIn { animation: fadeInUp 300ms ease-out both; }
+
+@keyframes pulseGentle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+.animate-pulse-gentle { animation: pulseGentle 2s ease-in-out infinite; }
+
+/* Interactions */
+.hover-lift {
+  transition: all 300ms ease-in-out;
+  transform: translateY(0) scale(1);
+}
+.hover-lift:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 28px rgba(0,0,0,0.08); }
+
+/* Search pill */
+.search-pill {
+  border-radius: 9999px;
+  background-color: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+  color: #fff;
+}

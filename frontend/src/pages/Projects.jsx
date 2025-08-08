@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Users, Calendar, Target, MoreVertical, Edit, Trash2, Eye, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn, buttonVariants } from '../utils/styles';
+import PageHeader from '../components/PageHeader';
 
 const API_URL = 'http://localhost:5000';
 
@@ -268,17 +269,19 @@ export default function Projects() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className={cn(buttonVariants.primary, 'flex items-center gap-2')}
-        >
-          <Plus size={16} />
-          Create Project
-        </button>
-      </div>
+    <div className="w-full">
+      <PageHeader title="Projects" />
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-gray-900">Projects</h2>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className={cn(buttonVariants.primary, 'flex items-center gap-2')}
+          >
+            <Plus size={16} />
+            Create Project
+          </button>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project) => {
@@ -697,6 +700,7 @@ export default function Projects() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

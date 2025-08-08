@@ -8,22 +8,22 @@ const compactStyles = {
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.25)",
+    background: "rgba(0,0,0,0.4)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 50
   },
   modal: {
-    background: "#fff",
-    color: "#222",
-    borderRadius: 12,
+    background: "#FFFFFF",
+    color: "#1a1a1a",
+    borderRadius: 16,
     padding: 16,
     width: "95%",
     maxWidth: 350,
     fontSize: 14,
-    boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
-    border: "1px solid #e5e7eb"
+    boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+    border: "1px solid #e6e6ea"
   },
   header: {
     fontWeight: 600,
@@ -45,26 +45,26 @@ const compactStyles = {
   input: {
     width: "100%",
     padding: "4px 6px",
-    borderRadius: 4,
-    border: "1px solid #e5e7eb",
+    borderRadius: 16,
+    border: "1px solid #e6e6ea",
     marginBottom: 6,
     fontSize: 13,
-    background: "#fff",
-    color: "#222"
+    background: "#FFFFFF",
+    color: "#1a1a1a"
   },
   tag: {
     display: "inline-block",
-    background: "#2563eb",
-    color: "#fff",
+    background: "#3FFFE0",
+    color: "#05343a",
     padding: "2px 8px",
-    borderRadius: 12,
+    borderRadius: 16,
     fontSize: 12,
     marginRight: 4,
     marginBottom: 2
   },
   tagRemove: {
     marginLeft: 4,
-    color: "#f43f5e",
+    color: "#ef4444",
     cursor: "pointer"
   },
   actions: {
@@ -268,7 +268,14 @@ const AddTaskForm = ({ date, task, onClose, onAddTask }) => {
               />
               <button
                 type="button"
-                style={{ ...compactStyles.input, width: 40, padding: "2px 0" }}
+                style={{
+                  ...compactStyles.input,
+                  width: 60,
+                  padding: "4px 8px",
+                  background: "#3FFFE0",
+                  color: "#05343a",
+                  fontWeight: 600
+                }}
                 onClick={handleAddPerson}
               >
                 Add
@@ -360,7 +367,14 @@ const AddTaskForm = ({ date, task, onClose, onAddTask }) => {
             />
             <button
               type="button"
-              style={{ ...compactStyles.input, width: 40, padding: "2px 0" }}
+              style={{
+                ...compactStyles.input,
+                width: 60,
+                padding: "4px 8px",
+                background: "#3FFFE0",
+                color: "#05343a",
+                fontWeight: 600
+              }}
               onClick={handleTagAdd}
             >
               Add
@@ -420,10 +434,11 @@ const AddTaskForm = ({ date, task, onClose, onAddTask }) => {
             type="button"
             onClick={onClose}
             style={{
-              background: "#970505ff",
-              padding: "4px 14px",
-              borderRadius: 4,
-              border: "none"
+              background: "transparent",
+              color: "#1a1a1a",
+              padding: "8px 16px",
+              borderRadius: 16,
+              border: "1px solid #e6e6ea"
             }}
           >
             Cancel
@@ -431,11 +446,12 @@ const AddTaskForm = ({ date, task, onClose, onAddTask }) => {
           <button
             type="submit"
             style={{
-              background: "#0b7503ff",
-              color: "#e7e7e7ff",
-              padding: "4px 14px",
-              borderRadius: 4,
-              border: "none"
+              background: "#F3FE39",
+              color: "#1a1a1a",
+              padding: "8px 16px",
+              borderRadius: 16,
+              border: "none",
+              fontWeight: 600
             }}
           >
             {task ? "Save" : "Add"}
