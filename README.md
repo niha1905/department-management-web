@@ -1,7 +1,7 @@
-# GrandMagnum123
+# department management
 
 ## Overview
-GrandMagnum123 is a full-stack web application with a Chrome extension component. This project demonstrates modern web development architecture with separated frontend, backend, and browser extension components.
+department management is a full-stack web application with a Chrome extension component. This project demonstrates modern web development architecture with separated frontend, backend, and browser extension components.
 
 ## Project Structure
 
